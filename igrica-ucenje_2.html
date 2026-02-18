@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Učimo Zajedno! 🌈</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0D0A2A;
+    --card: #16103A;
+    --card2: #1F1850;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    color: white;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(168,85,247,.15) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 70%, rgba(59,130,246,.12) 0%, transparent 55%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .screen { display:none; position:relative; z-index:1; }
+  .screen.active { display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:20px 16px 40px; }
+
+  /* ======= HOME ======= */
+  .logo {
+    font-family:'Fredoka One',cursive;
+    font-size: clamp(2.8rem, 9vw, 5rem);
+    background: linear-gradient(135deg,#FF6B9D,#A855F7,#3B82F6);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    text-align:center;
+    margin-top:30px;
+    filter:drop-shadow(0 0 30px rgba(168,85,247,.5));
+    animation:float 3s ease-in-out infinite;
+  }
+  @keyframes float{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+  .subtitle { font-size:1rem; color:rgba(255,255,255,.5); margin:8px 0 44px; letter-spacing:3px; text-transform:uppercase; }
+
+  .game-cards { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; width:100%; max-width:860px; }
+
+  .game-card {
+    background:var(--card);
+    border-radius:28px;
+    padding:34px 24px;
+    width:250px;
+    cursor:pointer;
+    border:2px solid transparent;
+    transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .game-card:hover { transform:translateY(-8px) scale(1.03); }
+  .gc-boje  { border-color:rgba(255,107,157,.25); }
+  .gc-slova { border-color:rgba(168,85,247,.25); }
+  .gc-broji { border-color:rgba(16,185,129,.25); }
+  .gc-boje:hover  { border-color:#FF6B9D; box-shadow:0 20px 50px rgba(255,107,157,.3); }
+  .gc-slova:hover { border-color:#A855F7; box-shadow:0 20px 50px rgba(168,85,247,.3); }
+  .gc-broji:hover { border-color:#10B981; box-shadow:0 20px 50px rgba(16,185,129,.3); }
+  .gc-memorij { border-color:rgba(251,191,36,.25); }
+  .gc-memorij:hover { border-color:#FBBF24; box-shadow:0 20px 50px rgba(251,191,36,.3); }
+  .gc-puzli { border-color:rgba(6,182,212,.25); }
+  .gc-puzli:hover { border-color:#06B6D4; box-shadow:0 20px 50px rgba(6,182,212,.3); }
+
+  /* ======= PUZZLE ======= */
+  .puz-screen { width:100%; max-width:680px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .puz-top-label { font-family:'Fredoka One',cursive; font-size:1.1rem; color:rgba(255,255,255,.5); letter-spacing:1px; }
+
+  /* Preview (small) */
+  .puz-preview-wrap { position:relative; }
+  .puz-preview {
+    border-radius:14px; border:3px solid rgba(255,255,255,.2);
+    box-shadow:0 4px 24px rgba(0,0,0,.4);
+    display:block;
+  }
+  .puz-preview-label {
+    position:absolute; bottom:-22px; left:50%; transform:translateX(-50%);
+    font-size:.78rem; color:rgba(255,255,255,.4); white-space:nowrap;
+  }
+
+  /* Board where pieces go */
+  .puz-board {
+    display:grid;
+    border-radius:16px;
+    overflow:hidden;
+    border:3px solid rgba(255,255,255,.15);
+    box-shadow:0 8px 40px rgba(0,0,0,.5);
+    position:relative;
+  }
+  .puz-slot {
+    background:rgba(255,255,255,.05);
+    border:2px dashed rgba(255,255,255,.15);
+    position:relative;
+    transition:background .2s, border-color .2s;
+    display:flex; align-items:center; justify-content:center;
+    cursor:default;
+  }
+  .puz-slot.over { background:rgba(6,182,212,.15); border-color:#06B6D4; }
+  .puz-slot.filled { border:none; }
+  .puz-slot.correct-flash { animation:correctFlash .4s ease; }
+  @keyframes correctFlash{ 0%{filter:brightness(2)} 100%{filter:brightness(1)} }
+
+  /* Piece tray */
+  .puz-tray {
+    display:flex; flex-wrap:wrap; gap:10px;
+    justify-content:center;
+    padding:14px; background:rgba(255,255,255,.05);
+    border-radius:20px; border:2px solid rgba(255,255,255,.08);
+    width:100%;
+  }
+  .puz-piece {
+    border-radius:10px;
+    cursor:grab;
+    border:3px solid rgba(255,255,255,.25);
+    box-shadow:0 4px 16px rgba(0,0,0,.4);
+    transition:transform .2s, box-shadow .2s;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+    touch-action:none;
+    position:relative;
+  }
+  .puz-piece:hover { transform:scale(1.06) translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.5); }
+  .puz-piece:active { cursor:grabbing; transform:scale(1.1); }
+  .puz-piece.dragging-pc { opacity:.35; }
+
+  .puz-done-banner {
+    font-family:'Fredoka One',cursive; font-size:2rem;
+    background:linear-gradient(135deg,#06B6D4,#A855F7);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
+    display:none;
+  }
+
+  .card-emoji { font-size:3rem; display:block; margin-bottom:14px; }
+  .card-title { font-family:'Fredoka One',cursive; font-size:1.9rem; margin-bottom:8px; }
+  .card-desc { font-size:.88rem; color:rgba(255,255,255,.45); line-height:1.5; }
+  .card-dots { margin-top:16px; display:flex; gap:5px; flex-wrap:wrap; }
+  .dot { width:11px; height:11px; border-radius:50%; background:rgba(255,255,255,.15); transition:background .3s; }
+  .dot.done { background:#10B981; }
+
+  /* ======= LEVEL SELECT ======= */
+  .back-btn {
+    align-self:flex-start;
+    background:rgba(255,255,255,.1); border:none; color:white;
+    padding:10px 20px; border-radius:50px; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; transition:all .2s;
+  }
+  .back-btn:hover { background:rgba(255,255,255,.2); transform:translateX(-4px); }
+
+  .screen-title { font-family:'Fredoka One',cursive; font-size:clamp(1.8rem,5vw,2.8rem); margin:28px 0 10px; text-align:center; }
+
+  .level-grid {
+    display:grid; grid-template-columns:repeat(5,1fr);
+    gap:14px; max-width:560px; width:100%; margin-top:36px;
+  }
+
+  .lvl-btn {
+    background:var(--card); border:2px solid rgba(255,255,255,.1); border-radius:18px;
+    padding:18px 8px; cursor:pointer; color:white;
+    font-family:'Fredoka One',cursive; font-size:1.3rem;
+    transition:all .3s cubic-bezier(.34,1.56,.64,1);
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+  }
+  .lvl-btn:hover:not(.locked) { transform:scale(1.1); }
+  .lvl-btn.locked { opacity:.35; cursor:not-allowed; }
+  .lvl-btn.done { border-color:#10B981; }
+  .lvl-num { font-size:.72rem; opacity:.55; font-family:'Nunito',sans-serif; }
+
+  /* ======= GAME ======= */
+  .game-top {
+    display:flex; align-items:center; justify-content:space-between;
+    width:100%; max-width:680px; margin-bottom:18px;
+  }
+  .prog-wrap { flex:1; height:13px; background:rgba(255,255,255,.1); border-radius:10px; overflow:hidden; margin:0 14px; }
+  .prog-bar { height:100%; border-radius:10px; transition:width .5s ease; background:linear-gradient(90deg,#06B6D4,#A855F7); }
+  .score-badge { background:rgba(255,255,255,.1); border-radius:50px; padding:6px 16px; font-weight:800; font-size:1.05rem; }
+  .round-lbl { font-size:.82rem; color:rgba(255,255,255,.4); margin-top:2px; text-align:right; }
+
+  /* COLOR CIRCLE */
+  .color-stage {
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+    margin-bottom:16px;
+  }
+  .color-circle {
+    width:clamp(110px,22vw,160px);
+    height:clamp(110px,22vw,160px);
+    border-radius:50%;
+    border:5px solid rgba(255,255,255,.3);
+    cursor:pointer;
+    position:relative;
+    transition:transform .2s;
+    animation:pulseShadow 2.5s ease-in-out infinite;
+  }
+  .color-circle:active { transform:scale(.94); }
+  @keyframes pulseShadow{
+    0%,100%{ box-shadow:0 0 40px var(--cc,#fff4), 0 0 80px var(--cc,#fff2); }
+    50%{ box-shadow:0 0 80px var(--cc,#fff8), 0 0 160px var(--cc,#fff4); }
+  }
+  .sound-row { display:flex; align-items:center; gap:8px; }
+  .speak-hint { font-size:.85rem; color:rgba(255,255,255,.45); animation:blink 2s ease-in-out infinite; }
+  @keyframes blink{ 0%,100%{opacity:.45} 50%{opacity:.9} }
+  .sound-wave { display:none; align-items:center; gap:3px; height:22px; }
+  .sound-wave.on { display:flex; }
+  .bar { width:4px; border-radius:4px; background:#A855F7; animation:wv .6s ease-in-out infinite; }
+  .bar:nth-child(1){ height:8px; animation-delay:0s; }
+  .bar:nth-child(2){ height:16px; animation-delay:.1s; }
+  .bar:nth-child(3){ height:22px; animation-delay:.2s; }
+  .bar:nth-child(4){ height:14px; animation-delay:.3s; }
+  .bar:nth-child(5){ height:8px; animation-delay:.4s; }
+  @keyframes wv{ 0%,100%{transform:scaleY(.4)} 50%{transform:scaleY(1)} }
+
+  /* QUESTION */
+  .q-label { font-size:.82rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,.4); margin-bottom:6px; text-align:center; }
+  .q-text { font-family:'Fredoka One',cursive; font-size:clamp(1.3rem,4vw,2rem); text-align:center; margin-bottom:18px; min-height:50px; }
+
+  /* ITEMS GRID */
+  .items-grid {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:12px; width:100%; max-width:500px;
+  }
+
+  .click-item {
+    background:var(--card2); border:3px solid rgba(255,255,255,.12); border-radius:20px;
+    padding:16px 8px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:7px;
+    font-weight:700; transition:all .22s cubic-bezier(.34,1.56,.64,1);
+    -webkit-tap-highlight-color:transparent; position:relative; overflow:hidden;
+    user-select:none;
+  }
+  .click-item:hover { transform:scale(1.06); border-color:rgba(255,255,255,.3); }
+  .click-item:active { transform:scale(.95); }
+  .ci-emoji { font-size:2.5rem; line-height:1; }
+  .ci-name { font-size:.8rem; opacity:.6; }
+
+  .click-item.c-correct { border-color:#10B981; background:rgba(16,185,129,.2); animation:pop .35s ease; }
+  .click-item.c-wrong   { border-color:#EF4444; background:rgba(239,68,68,.15); animation:shake .35s ease; }
+  .click-item.c-reveal  { border-color:#10B981; background:rgba(16,185,129,.08); }
+  .click-item.c-disabled{ pointer-events:none; }
+
+  @keyframes pop  { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+  @keyframes shake{ 0%,100%{transform:translateX(0)} 30%{transform:translateX(-8px)} 70%{transform:translateX(8px)} }
+
+  .ck { position:absolute; top:5px; right:8px; font-size:.85rem; }
+
+  /* FEEDBACK + CONTINUE */
+  .feedback-bar {
+    border-radius:16px; padding:12px 22px; font-size:1rem; font-weight:700;
+    text-align:center; min-height:50px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; max-width:500px; transition:all .3s; opacity:0;
+  }
+  .feedback-bar.show { opacity:1; }
+  .feedback-bar.good { background:rgba(16,185,129,.2); border:2px solid rgba(16,185,129,.5); color:#6ee7b7; }
+  .feedback-bar.bad  { background:rgba(239,68,68,.15); border:2px solid rgba(239,68,68,.4); color:#fca5a5; }
+
+  .continue-btn {
+    background:linear-gradient(135deg,#A855F7,#FF6B9D);
+    border:none; color:white; padding:16px 44px; border-radius:50px;
+    cursor:pointer; font-family:'Fredoka One',cursive; font-size:1.4rem;
+    box-shadow:0 8px 30px rgba(168,85,247,.4); transition:all .2s;
+    display:none; margin-top:8px;
+    animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .continue-btn:hover { transform:scale(1.05); }
+  @keyframes popIn{ from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+
+  /* ======= RESULT ======= */
+  .result-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.82);
+    z-index:100; display:none; align-items:center; justify-content:center;
+  }
+  .result-overlay.show { display:flex; }
+  .result-card {
+    background:var(--card); border-radius:32px; padding:46px 54px; text-align:center;
+    border:2px solid rgba(255,255,255,.1); max-width:420px; width:92%;
+    animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .res-emoji { font-size:5rem; display:block; margin-bottom:14px; }
+  .res-title { font-family:'Fredoka One',cursive; font-size:2.4rem; margin-bottom:6px; }
+  .res-sub { color:rgba(255,255,255,.5); margin-bottom:26px; font-size:1.05rem; }
+  .stars-row { display:flex; gap:8px; justify-content:center; font-size:2.2rem; margin-bottom:16px; }
+  .btn-row { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .btn-p { background:linear-gradient(135deg,#A855F7,#FF6B9D); border:none; color:white; padding:14px 36px; border-radius:50px; cursor:pointer; font-family:'Fredoka One',cursive; font-size:1.25rem; box-shadow:0 8px 28px rgba(168,85,247,.4); transition:all .2s; }
+  .btn-p:hover { transform:scale(1.05); }
+  .btn-s { background:rgba(255,255,255,.1); border:2px solid rgba(255,255,255,.2); color:white; padding:12px 32px; border-radius:50px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; transition:all .2s; }
+  .btn-s:hover { background:rgba(255,255,255,.2); }
+
+
+  /* ======= MEMORY GAME ======= */
+  .mem-stats {
+    display:flex; gap:20px; align-items:center; justify-content:center;
+    margin-bottom:18px; flex-wrap:wrap;
+  }
+  .mem-stat {
+    background:rgba(255,255,255,.08); border-radius:50px;
+    padding:8px 20px; font-weight:800; font-size:1rem;
+    display:flex; align-items:center; gap:6px;
+  }
+  .mem-grid {
+    display:grid;
+    gap:10px;
+    width:100%; max-width:520px;
+    margin:0 auto;
+  }
+  .mem-card-wrap {
+    perspective:600px;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mem-card {
+    width:100%; padding-top:100%;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform 0.45s cubic-bezier(.4,0,.2,1);
+    border-radius:18px;
+  }
+  .mem-card.flipped { transform:rotateY(180deg); }
+  .mem-card.matched { transform:rotateY(180deg); }
+  .mem-card-face {
+    position:absolute; inset:0;
+    border-radius:18px;
+    display:flex; align-items:center; justify-content:center;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+  }
+  .mem-card-back {
+    background:linear-gradient(135deg,#2d1b69,#1a1040);
+    border:2px solid rgba(255,255,255,.12);
+    font-size:2rem;
+    overflow:hidden;
+  }
+  .mem-card-back::before {
+    content:'';
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(
+      45deg, transparent, transparent 8px,
+      rgba(255,255,255,.03) 8px, rgba(255,255,255,.03) 16px
+    );
+  }
+  .mem-card-front {
+    background:linear-gradient(135deg,var(--card2),#2a1f6e);
+    border:2px solid rgba(255,255,255,.18);
+    font-size:2.4rem;
+    transform:rotateY(180deg);
+  }
+  .mem-card.matched .mem-card-front {
+    border-color:#10B981;
+    background:linear-gradient(135deg,rgba(16,185,129,.25),rgba(16,185,129,.1));
+    animation:matchPop .4s ease;
+  }
+  @keyframes matchPop{ 0%{transform:rotateY(180deg) scale(1)} 50%{transform:rotateY(180deg) scale(1.18)} 100%{transform:rotateY(180deg) scale(1)} }
+  .mem-card-wrap:hover .mem-card:not(.flipped):not(.matched) {
+    transform:rotateY(12deg) scale(1.05);
+  }
+  .mem-pairs-info {
+    font-family:'Fredoka One',cursive;
+    font-size:1rem; color:rgba(255,255,255,.45);
+    margin-bottom:10px; text-align:center;
+  }
+
+  /* CONFETTI */
+  .cf { position:fixed; width:11px; height:11px; animation:cfFall linear forwards; z-index:200; pointer-events:none; }
+  @keyframes cfFall{ 0%{transform:translateY(-20px) rotate(0);opacity:1} 100%{transform:translateY(106vh) rotate(720deg);opacity:0} }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="logo">🌈 Učimo!</div>
+  <p class="subtitle">Odaberi igru</p>
+  <div class="game-cards">
+    <div class="game-card gc-boje" onclick="selectGame('boje')">
+      <span class="card-emoji">🎨</span>
+      <div class="card-title" style="background:linear-gradient(135deg,#FF6B9D,#FBBF24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Boje</div>
+      <div class="card-desc">Klikni sve što je te boje!</div>
+      <div class="card-dots" id="dots-boje"></div>
+    </div>
+    <div class="game-card gc-slova" onclick="selectGame('slova')">
+      <span class="card-emoji">🔤</span>
+      <div class="card-title" style="background:linear-gradient(135deg,#A855F7,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Slova</div>
+      <div class="card-desc">Klikni sliku koja počinje s tim slovom!</div>
+      <div class="card-dots" id="dots-slova"></div>
+    </div>
+    <div class="game-card gc-broji" onclick="selectGame('broji')">
+      <span class="card-emoji">🔢</span>
+      <div class="card-title" style="background:linear-gradient(135deg,#10B981,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Brojevi</div>
+      <div class="card-desc">Klikni grupu s točnim brojem!</div>
+      <div class="card-dots" id="dots-broji"></div>
+    </div>
+    <div class="game-card gc-memorij" onclick="selectGame('memorij')">
+      <span class="card-emoji">🧠</span>
+      <div class="card-title" style="background:linear-gradient(135deg,#FBBF24,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Memorij</div>
+      <div class="card-desc">Pronađi parove okretanjem kartica!</div>
+      <div class="card-dots" id="dots-memorij"></div>
+    </div>
+    <div class="game-card gc-puzli" onclick="selectGame('puzli')">
+      <span class="card-emoji">🧩</span>
+      <div class="card-title" style="background:linear-gradient(135deg,#06B6D4,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Puzzle</div>
+      <div class="card-desc">Složi komade slike na pravo mjesto!</div>
+      <div class="card-dots" id="dots-puzli"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LEVEL SELECT -->
+<div class="screen" id="screen-levels">
+  <button class="back-btn" onclick="goHome()">← Natrag</button>
+  <div class="screen-title" id="lvl-title">Odaberi level</div>
+  <div class="level-grid" id="level-grid"></div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="screen-game">
+  <div class="game-top">
+    <button class="back-btn" onclick="goLevels()" style="padding:8px 16px;font-size:.9rem;">← Natrag</button>
+    <div class="prog-wrap"><div class="prog-bar" id="prog-bar"></div></div>
+    <div>
+      <div class="score-badge">⭐ <span id="score-val">0</span></div>
+      <div class="round-lbl" id="round-lbl">1/5</div>
+    </div>
+  </div>
+
+  <!-- Color stage (only for boje) -->
+  <div class="color-stage" id="color-stage">
+    <div class="color-circle" id="color-circle" onclick="speakColor()"></div>
+    <div id="color-name-label" style="font-family:'Fredoka One',cursive;font-size:1.6rem;letter-spacing:1px;margin-top:4px;text-shadow:0 0 20px rgba(255,255,255,.3);"></div>
+    <div class="sound-row">
+      <span class="speak-hint" id="speak-hint">🔊 Klikni za zvuk</span>
+      <div class="sound-wave" id="sound-wave">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="q-label" id="q-label"></div>
+  <div class="q-text" id="q-text"></div>
+  <div class="items-grid" id="items-grid"></div>
+  <div class="feedback-bar" id="feedback-bar"></div>
+  <button class="continue-btn" id="continue-btn" onclick="nextRound()">Dalje →</button>
+</div>
+
+<!-- MEMORY GAME -->
+<div class="screen" id="screen-memory">
+  <div class="game-top">
+    <button class="back-btn" onclick="goLevels()" style="padding:8px 16px;font-size:.9rem;">← Natrag</button>
+    <div class="prog-wrap"><div class="prog-bar" id="mem-prog-bar"></div></div>
+    <div>
+      <div class="score-badge">⭐ <span id="mem-score-val">0</span></div>
+      <div class="round-lbl" id="mem-moves-lbl">0 poteza</div>
+    </div>
+  </div>
+  <div class="mem-pairs-info" id="mem-pairs-info">Pronađi 2 para</div>
+  <div class="mem-stats">
+    <div class="mem-stat">🃏 <span id="mem-pairs-left">0</span> para ostalo</div>
+    <div class="mem-stat">⏱️ <span id="mem-timer">0</span>s</div>
+  </div>
+  <div class="mem-grid" id="mem-grid"></div>
+</div>
+
+<!-- PUZZLE GAME -->
+<div class="screen" id="screen-puzzle">
+  <div class="game-top">
+    <button class="back-btn" onclick="goLevels()" style="padding:8px 16px;font-size:.9rem;">← Natrag</button>
+    <div class="prog-wrap"><div class="prog-bar" id="puz-prog-bar"></div></div>
+    <div>
+      <div class="score-badge">🧩 <span id="puz-level-lbl">Level 1</span></div>
+    </div>
+  </div>
+  <div class="puz-screen">
+    <div class="puz-done-banner" id="puz-done-banner">🎉 Bravo! Složio si puzzle!</div>
+    <div class="puz-top-label" id="puz-top-label">Složi sliku!</div>
+    <div class="puz-preview-wrap">
+      <canvas id="puz-preview-canvas" class="puz-preview"></canvas>
+      <span class="puz-preview-label">Ovako treba izgledati →</span>
+    </div>
+    <div class="puz-board" id="puz-board"></div>
+    <div class="puz-tray" id="puz-tray"></div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="result-overlay" id="result-overlay">
+  <div class="result-card">
+    <span class="res-emoji" id="res-emoji">🎉</span>
+    <div class="stars-row" id="res-stars"></div>
+    <div class="res-title" id="res-title">Bravo!</div>
+    <div class="res-sub" id="res-sub"></div>
+    <div class="btn-row">
+      <button class="btn-s" onclick="retryLevel()">🔄 Ponovi</button>
+      <button class="btn-p" id="next-lvl-btn" onclick="nextLevel()">Sljedeći →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// DATA
+// ================================================================
+// ================================================================
+// LEVEL-BASED DATA: svaki level = 1 tema, 3 runde s 1/2/3 tocna odgovora
+// ================================================================
+
+// BOJE: 10 levela, svaki = jedna boja
+// correct = sve sto je te boje (pool za runde), wrong = sto nije
+const COLORS = [
+  { color:'#EF4444', name:'Crvena',
+    correct:[{e:'🍎',l:'Jabuka'},{e:'🌹',l:'Ruža'},{e:'🍓',l:'Jagoda'},{e:'❤️',l:'Srce'},{e:'🚒',l:'Vatrogasac'},{e:'🍅',l:'Rajčica'}],
+    wrong:  [{e:'🐸',l:'Žaba'},{e:'🌊',l:'Val'},{e:'☀️',l:'Sunce'},{e:'🐧',l:'Pingvin'},{e:'🍇',l:'Grožđe'},{e:'🐘',l:'Slon'},{e:'🌻',l:'Suncokret'},{e:'🐬',l:'Delfin'}] },
+  { color:'#3B82F6', name:'Plava',
+    correct:[{e:'🌊',l:'Val'},{e:'💙',l:'Srce'},{e:'🫐',l:'Borovnica'},{e:'🐬',l:'Delfin'},{e:'🧢',l:'Kapa'},{e:'🦋',l:'Leptir'}],
+    wrong:  [{e:'🍎',l:'Jabuka'},{e:'🌻',l:'Suncokret'},{e:'🐸',l:'Žaba'},{e:'🍊',l:'Naranča'},{e:'🌹',l:'Ruža'},{e:'🦁',l:'Lav'},{e:'🐘',l:'Slon'},{e:'🥕',l:'Mrkva'}] },
+  { color:'#22C55E', name:'Zelena',
+    correct:[{e:'🐸',l:'Žaba'},{e:'🌿',l:'List'},{e:'🍀',l:'Djetelina'},{e:'🐢',l:'Kornjača'},{e:'🥦',l:'Brokula'},{e:'🌱',l:'Klica'}],
+    wrong:  [{e:'🍎',l:'Jabuka'},{e:'☁️',l:'Oblak'},{e:'🌙',l:'Mjesec'},{e:'🐧',l:'Pingvin'},{e:'🍋',l:'Limun'},{e:'🐘',l:'Slon'},{e:'🌊',l:'Val'},{e:'🦁',l:'Lav'}] },
+  { color:'#FBBF24', name:'Žuta',
+    correct:[{e:'☀️',l:'Sunce'},{e:'🌻',l:'Suncokret'},{e:'🍋',l:'Limun'},{e:'🐝',l:'Pčela'},{e:'🌟',l:'Zvijezda'},{e:'🍌',l:'Banana'}],
+    wrong:  [{e:'🍎',l:'Jabuka'},{e:'🌊',l:'Val'},{e:'🐸',l:'Žaba'},{e:'🍇',l:'Grožđe'},{e:'🌹',l:'Ruža'},{e:'🐧',l:'Pingvin'},{e:'🐘',l:'Slon'},{e:'🐬',l:'Delfin'}] },
+  { color:'#F97316', name:'Narančasta',
+    correct:[{e:'🍊',l:'Naranča'},{e:'🎃',l:'Bundeva'},{e:'🦊',l:'Lisica'},{e:'🥕',l:'Mrkva'},{e:'🍑',l:'Breskva'},{e:'🌅',l:'Zalazak'}],
+    wrong:  [{e:'🍎',l:'Jabuka'},{e:'🌊',l:'Val'},{e:'🐸',l:'Žaba'},{e:'🌻',l:'Suncokret'},{e:'🍇',l:'Grožđe'},{e:'🐧',l:'Pingvin'},{e:'🐘',l:'Slon'},{e:'💙',l:'Srce'}] },
+  { color:'#A855F7', name:'Ljubičasta',
+    correct:[{e:'🍇',l:'Grožđe'},{e:'🔮',l:'Kristal'},{e:'🦄',l:'Jednorog'},{e:'🍆',l:'Patlidžan'},{e:'💜',l:'Srce'},{e:'🌸',l:'Ljubičica'}],
+    wrong:  [{e:'🍎',l:'Jabuka'},{e:'🌊',l:'Val'},{e:'🐸',l:'Žaba'},{e:'☀️',l:'Sunce'},{e:'🥕',l:'Mrkva'},{e:'🦁',l:'Lav'},{e:'🐘',l:'Slon'},{e:'🌻',l:'Suncokret'}] },
+  { color:'#EC4899', name:'Ružičasta',
+    correct:[{e:'🌸',l:'Cvijet'},{e:'🦩',l:'Flamingo'},{e:'🍬',l:'Bombon'},{e:'🎀',l:'Mašna'},{e:'🐷',l:'Svinja'},{e:'🌺',l:'Hibiskus'}],
+    wrong:  [{e:'🐸',l:'Žaba'},{e:'🌊',l:'Val'},{e:'☀️',l:'Sunce'},{e:'🍇',l:'Grožđe'},{e:'🦁',l:'Lav'},{e:'🐧',l:'Pingvin'},{e:'🐘',l:'Slon'},{e:'🥕',l:'Mrkva'}] },
+  { color:'#FFFFFF', name:'Bijela',
+    correct:[{e:'☁️',l:'Oblak'},{e:'⛄',l:'Snjegovič'},{e:'🐇',l:'Zec'},{e:'🥛',l:'Mlijeko'},{e:'🕊️',l:'Golub'},{e:'🌨️',l:'Snijeg'}],
+    wrong:  [{e:'🍎',l:'Jabuka'},{e:'🌊',l:'Val'},{e:'🐸',l:'Žaba'},{e:'☀️',l:'Sunce'},{e:'🍇',l:'Grožđe'},{e:'🥕',l:'Mrkva'},{e:'🦁',l:'Lav'},{e:'🐧',l:'Pingvin'}] },
+  { color:'#6B7280', name:'Siva',
+    correct:[{e:'🐘',l:'Slon'},{e:'🌫️',l:'Magla'},{e:'🐺',l:'Vuk'},{e:'🪨',l:'Kamen'},{e:'🦈',l:'Morski pas'},{e:'🐭',l:'Miš'}],
+    wrong:  [{e:'🍎',l:'Jabuka'},{e:'🌊',l:'Val'},{e:'🐸',l:'Žaba'},{e:'☀️',l:'Sunce'},{e:'🌸',l:'Cvijet'},{e:'🍊',l:'Naranča'},{e:'🌻',l:'Suncokret'},{e:'🍇',l:'Grožđe'}] },
+  { color:'#92400E', name:'Smeđa',
+    correct:[{e:'🐻',l:'Medvjed'},{e:'🍫',l:'Čokolada'},{e:'🦔',l:'Jež'},{e:'🪵',l:'Drvo'},{e:'🐕',l:'Pas'},{e:'🌰',l:'Kesten'}],
+    wrong:  [{e:'🍎',l:'Jabuka'},{e:'🌊',l:'Val'},{e:'🐸',l:'Žaba'},{e:'☀️',l:'Sunce'},{e:'🌸',l:'Cvijet'},{e:'🐬',l:'Delfin'},{e:'🌻',l:'Suncokret'},{e:'🍋',l:'Limun'}] },
+];
+
+// SLOVA: svaki level = jedno slovo, correct = vise rijeci koje pocinju tim slovom
+const LETTERS = [
+  // Lv1 — slovo A
+  // Avion ✈️, Ananas 🍍 (PRAVI emoji!), Auto 🚗
+  { letter:'A', correct:[{e:'✈️',l:'Avion'},{e:'🍍',l:'Ananas'},{e:'🚗',l:'Auto'}],
+    wrong:[{e:'🐶',l:'Pas'},{e:'🍕',l:'Pizza'},{e:'🐸',l:'Žaba'},{e:'🚢',l:'Brod'},{e:'🍋',l:'Limun'},{e:'🌹',l:'Ruža'},{e:'🐘',l:'Slon'},{e:'🍓',l:'Jagoda'}] },
+
+  // Lv2 — slovo B
+  // Brod 🚢, Buba 🐛, Banana 🍌
+  { letter:'B', correct:[{e:'🚢',l:'Brod'},{e:'🐛',l:'Buba'},{e:'🍌',l:'Banana'}],
+    wrong:[{e:'✈️',l:'Avion'},{e:'🍕',l:'Pizza'},{e:'🐸',l:'Žaba'},{e:'🦁',l:'Lav'},{e:'🐘',l:'Slon'},{e:'🍎',l:'Jabuka'},{e:'🌸',l:'Cvijet'},{e:'🚗',l:'Auto'}] },
+
+  // Lv3 — slovo C (i Č)
+  // Cvijet 🌸, Čokolada 🍫, Crv 🪱
+  { letter:'C', correct:[{e:'🌸',l:'Cvijet'},{e:'🍫',l:'Čokolada'},{e:'🪱',l:'Crv'}],
+    wrong:[{e:'🚢',l:'Brod'},{e:'✈️',l:'Avion'},{e:'🐸',l:'Žaba'},{e:'🦁',l:'Lav'},{e:'🐘',l:'Slon'},{e:'🍎',l:'Jabuka'},{e:'🐶',l:'Pas'},{e:'🍕',l:'Pizza'}] },
+
+  // Lv4 — slovo D
+  // Duga 🌈, Dinja 🍉, Dupin 🐬
+  { letter:'D', correct:[{e:'🌈',l:'Duga'},{e:'🍉',l:'Dinja'},{e:'🐬',l:'Dupin'}],
+    wrong:[{e:'🚢',l:'Brod'},{e:'🌸',l:'Cvijet'},{e:'🐸',l:'Žaba'},{e:'✈️',l:'Avion'},{e:'🍎',l:'Jabuka'},{e:'🐘',l:'Slon'},{e:'🦁',l:'Lav'},{e:'🍌',l:'Banana'}] },
+
+  // Lv5 — slovo G
+  // Gljiva 🍄, Grožđe 🍇, Golub 🕊️
+  { letter:'G', correct:[{e:'🍄',l:'Gljiva'},{e:'🍇',l:'Grožđe'},{e:'🕊️',l:'Golub'}],
+    wrong:[{e:'🚢',l:'Brod'},{e:'🌸',l:'Cvijet'},{e:'🐘',l:'Slon'},{e:'🦁',l:'Lav'},{e:'✈️',l:'Avion'},{e:'🍎',l:'Jabuka'},{e:'🐸',l:'Žaba'},{e:'🍕',l:'Pizza'}] },
+
+  // Lv6 — slovo H
+  // Hrčak 🐹, Hobotnica 🐙, Hljeb 🍞
+  { letter:'H', correct:[{e:'🐹',l:'Hrčak'},{e:'🐙',l:'Hobotnica'},{e:'🍞',l:'Hljeb'}],
+    wrong:[{e:'🚢',l:'Brod'},{e:'🌸',l:'Cvijet'},{e:'🐘',l:'Slon'},{e:'🍄',l:'Gljiva'},{e:'✈️',l:'Avion'},{e:'🍎',l:'Jabuka'},{e:'🦁',l:'Lav'},{e:'🐸',l:'Žaba'}] },
+
+  // Lv7 — slovo I
+  // Igloo 🏠, Igračka 🧸, Insekat 🦟  
+  { letter:'I', correct:[{e:'🏠',l:'Igloo'},{e:'🧸',l:'Igračka'},{e:'🦟',l:'Insekat'}],
+    wrong:[{e:'🚢',l:'Brod'},{e:'🌸',l:'Cvijet'},{e:'🐘',l:'Slon'},{e:'🍄',l:'Gljiva'},{e:'🍞',l:'Kruh'},{e:'🍎',l:'Jabuka'},{e:'🦁',l:'Lav'},{e:'🐸',l:'Žaba'}] },
+
+  // Lv8 — slovo J
+  // Jabuka 🍎, Jež 🦔, Jagoda 🍓
+  { letter:'J', correct:[{e:'🍎',l:'Jabuka'},{e:'🦔',l:'Jež'},{e:'🍓',l:'Jagoda'}],
+    wrong:[{e:'🚢',l:'Brod'},{e:'🐘',l:'Slon'},{e:'🍄',l:'Gljiva'},{e:'🍞',l:'Kruh'},{e:'🦁',l:'Lav'},{e:'🐸',l:'Žaba'},{e:'🌸',l:'Cvijet'},{e:'🍌',l:'Banana'}] },
+
+  // Lv9 — slovo K
+  // Krava 🐄, Konj 🐴, Kruh 🍞 — ne mačka jer mačka ≠ kuna
+  { letter:'K', correct:[{e:'🐄',l:'Krava'},{e:'🐴',l:'Konj'},{e:'🔑',l:'Ključ'}],
+    wrong:[{e:'🚢',l:'Brod'},{e:'🍎',l:'Jabuka'},{e:'🐘',l:'Slon'},{e:'🍄',l:'Gljiva'},{e:'✈️',l:'Avion'},{e:'🦁',l:'Lav'},{e:'🐸',l:'Žaba'},{e:'🌸',l:'Cvijet'}] },
+
+  // Lv10 — slovo L
+  // Lav 🦁, Limun 🍋, Leptir 🦋
+  { letter:'L', correct:[{e:'🦁',l:'Lav'},{e:'🍋',l:'Limun'},{e:'🦋',l:'Leptir'}],
+    wrong:[{e:'🚢',l:'Brod'},{e:'🍎',l:'Jabuka'},{e:'🐘',l:'Slon'},{e:'🍄',l:'Gljiva'},{e:'✈️',l:'Avion'},{e:'🐸',l:'Žaba'},{e:'🌸',l:'Cvijet'},{e:'🐶',l:'Pas'}] },
+];
+
+// BROJEVI: svaki level = jedan broj, correct = grupe s tim brojem predmeta
+const NUMBERS = [
+  { n:1, correct:[{e:'⭐',l:'1 zvijezda'},{e:'🌙',l:'1 mjesec'},{e:'☀️',l:'1 sunce'}],
+    wrong:[{e:'⭐⭐',l:'2 zvijezde'},{e:'🌙🌙🌙',l:'3 mjeseca'},{e:'☀️☀️☀️☀️',l:'4 sunca'},{e:'⭐⭐⭐⭐⭐',l:'5 zvijezda'},{e:'🌙🌙',l:'2 mjeseca'}] },
+  { n:2, correct:[{e:'🐶🐶',l:'2 psa'},{e:'🌸🌸',l:'2 cvijeta'},{e:'⭐⭐',l:'2 zvijezde'}],
+    wrong:[{e:'🐶',l:'1 pas'},{e:'🌸🌸🌸',l:'3 cvijeta'},{e:'⭐⭐⭐⭐',l:'4 zvijezde'},{e:'🐱🐱🐱🐱🐱',l:'5 mačaka'},{e:'🌙',l:'1 mjesec'}] },
+  { n:3, correct:[{e:'🍕🍕🍕',l:'3 pizze'},{e:'🐸🐸🐸',l:'3 žabe'},{e:'🌟🌟🌟',l:'3 zvijezde'}],
+    wrong:[{e:'🍕🍕',l:'2 pizze'},{e:'🐸🐸🐸🐸',l:'4 žabe'},{e:'🌟',l:'1 zvijezda'},{e:'🍕🍕🍕🍕🍕',l:'5 pizzi'},{e:'🐸🐸',l:'2 žabe'}] },
+  { n:4, correct:[{e:'🌸🌸🌸🌸',l:'4 cvijeta'},{e:'🍎🍎🍎🍎',l:'4 jabuke'},{e:'⭐⭐⭐⭐',l:'4 zvijezde'}],
+    wrong:[{e:'🌸🌸🌸',l:'3 cvijeta'},{e:'🍎🍎🍎🍎🍎',l:'5 jabuka'},{e:'⭐⭐',l:'2 zvijezde'},{e:'🌸🌸🌸🌸🌸🌸',l:'6 cvjetova'},{e:'🍎',l:'1 jabuka'}] },
+  { n:5, correct:[{e:'⭐⭐⭐⭐⭐',l:'5 zvijezda'},{e:'🐶🐶🐶🐶🐶',l:'5 pasa'},{e:'🍊🍊🍊🍊🍊',l:'5 naranči'}],
+    wrong:[{e:'⭐⭐⭐⭐',l:'4 zvijezde'},{e:'🐶🐶🐶🐶🐶🐶',l:'6 pasa'},{e:'🍊🍊🍊',l:'3 naranče'},{e:'⭐⭐',l:'2 zvijezde'},{e:'🐶',l:'1 pas'}] },
+  { n:6, correct:[{e:'🦋🦋🦋🦋🦋🦋',l:'6 leptira'},{e:'🍓🍓🍓🍓🍓🍓',l:'6 jagoda'},{e:'🐟🐟🐟🐟🐟🐟',l:'6 riba'}],
+    wrong:[{e:'🦋🦋🦋🦋🦋',l:'5 leptira'},{e:'🍓🍓🍓🍓🍓🍓🍓',l:'7 jagoda'},{e:'🐟🐟🐟🐟',l:'4 ribe'},{e:'🦋🦋🦋',l:'3 leptira'},{e:'🍓🍓',l:'2 jagode'}] },
+  { n:7, correct:[{e:'🍇🍇🍇🍇🍇🍇🍇',l:'7 grozda'},{e:'🌙🌙🌙🌙🌙🌙🌙',l:'7 mjeseci'},{e:'🐱🐱🐱🐱🐱🐱🐱',l:'7 mačaka'}],
+    wrong:[{e:'🍇🍇🍇🍇🍇🍇',l:'6 grozda'},{e:'🌙🌙🌙🌙🌙🌙🌙🌙',l:'8 mjeseci'},{e:'🐱🐱🐱🐱🐱',l:'5 mačaka'},{e:'🍇🍇🍇',l:'3 grozda'},{e:'🌙🌙',l:'2 mjeseca'}] },
+  { n:8, correct:[{e:'🐟🐟🐟🐟🐟🐟🐟🐟',l:'8 riba'},{e:'🌸🌸🌸🌸🌸🌸🌸🌸',l:'8 cvjetova'},{e:'⭐⭐⭐⭐⭐⭐⭐⭐',l:'8 zvijezda'}],
+    wrong:[{e:'🐟🐟🐟🐟🐟🐟🐟',l:'7 riba'},{e:'🌸🌸🌸🌸🌸🌸🌸🌸🌸',l:'9 cvjetova'},{e:'⭐⭐⭐⭐⭐⭐',l:'6 zvijezda'},{e:'🐟🐟🐟🐟🐟',l:'5 riba'},{e:'🌸🌸🌸',l:'3 cvijeta'}] },
+  { n:9, correct:[{e:'🌍🌍🌍🌍🌍🌍🌍🌍🌍',l:'9 planeta'},{e:'🐝🐝🐝🐝🐝🐝🐝🐝🐝',l:'9 pčela'},{e:'🍕🍕🍕🍕🍕🍕🍕🍕🍕',l:'9 pizzi'}],
+    wrong:[{e:'🌍🌍🌍🌍🌍🌍🌍🌍',l:'8 planeta'},{e:'🐝🐝🐝🐝🐝🐝🐝🐝🐝🐝',l:'10 pčela'},{e:'🍕🍕🍕🍕🍕🍕🍕',l:'7 pizzi'},{e:'🌍🌍🌍🌍🌍',l:'5 planeta'},{e:'🐝🐝🐝',l:'3 pčele'}] },
+  { n:10, correct:[{e:'🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈',l:'10 balona'},{e:'⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐',l:'10 zvijezda'},{e:'🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎',l:'10 jabuka'}],
+    wrong:[{e:'🎈🎈🎈🎈🎈🎈🎈🎈🎈',l:'9 balona'},{e:'⭐⭐⭐⭐⭐⭐⭐⭐',l:'8 zvijezda'},{e:'🍎🍎🍎🍎🍎🍎',l:'6 jabuka'},{e:'🎈🎈🎈🎈🎈',l:'5 balona'},{e:'⭐⭐⭐',l:'3 zvijezde'}] },
+];
+
+// ================================================================
+// STATE
+// ================================================================
+let G='', LVL=1, ROUND=0, TOTAL=0, SCORE=0;
+let roundItems=[], correctSet=new Set(), selectedOk=new Set(), wrongCount=0, done=false;
+let completed={boje:new Set(),slova:new Set(),broji:new Set(),memorij:new Set(),puzli:new Set()};
+let colorName='', currentN=0;
+const ss=window.speechSynthesis;
+
+// ================================================================
+// WEB AUDIO — veseli dječji zvukovi
+// ================================================================
+let AC=null;
+function getAC(){
+  if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended') AC.resume();
+  return AC;
+}
+
+// Svira melodiju (niz [frekvencija, trajanje_s])
+function playMelody(notes, vol=0.25){
+  const ac=getAC();
+  let t=ac.currentTime+0.02;
+  notes.forEach(([freq,dur,type='sine'])=>{
+    if(!freq){ t+=dur; return; }
+    const osc=ac.createOscillator();
+    const gain=ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.type=type;
+    osc.frequency.setValueAtTime(freq,t);
+    // Malo vibrata za toplinu
+    osc.frequency.linearRampToValueAtTime(freq*1.008, t+dur*0.5);
+    osc.frequency.linearRampToValueAtTime(freq, t+dur);
+    gain.gain.setValueAtTime(0,t);
+    gain.gain.linearRampToValueAtTime(vol,t+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
+    t+=dur*0.88;
+  });
+}
+
+// Veseli "točno!" zvuk — uzlazna dur ljestvica
+function playCorrect(){
+  playMelody([
+    [523,0.10],[659,0.10],[784,0.10],[1047,0.22]
+  ], 0.2);
+  // Dodaj zvjezdice - kratki sparkle
+  setTimeout(()=>playMelody([[1319,0.08],[1568,0.14]],0.12),280);
+}
+
+// Super win zvuk — fanfara
+function playWin(){
+  playMelody([
+    [523,0.12],[523,0.12],[523,0.12],[415,0.09],[494,0.09],[523,0.30],
+    [null,0.06],
+    [523,0.12],[523,0.12],[523,0.12],[415,0.09],[494,0.09],[659,0.45],
+  ], 0.22);
+}
+
+// Pogrešan odgovor — smiješni "boing" silazni
+function playWrong(){
+  const ac=getAC();
+  const t=ac.currentTime+0.02;
+  const osc=ac.createOscillator();
+  const gain=ac.createGain();
+  osc.connect(gain); gain.connect(ac.destination);
+  osc.type='sawtooth';
+  osc.frequency.setValueAtTime(300,t);
+  osc.frequency.exponentialRampToValueAtTime(80,t+0.35);
+  gain.gain.setValueAtTime(0.15,t);
+  gain.gain.exponentialRampToValueAtTime(0.001,t+0.38);
+  osc.start(t); osc.stop(t+0.4);
+}
+
+// Klik zvuk za button
+function playClick(){
+  playMelody([[880,0.06],[1100,0.06]],0.12);
+}
+
+// Intro jingle na home screen
+function playJingle(){
+  playMelody([
+    [523,0.13],[659,0.13],[784,0.13],[1047,0.13],[784,0.13],[659,0.13],[523,0.26],
+  ],0.18);
+}
+
+// ================================================================
+// SPEECH — TTS s dječjim glasom
+// ================================================================
+function speak(txt,cb){
+  if(!ss){ cb&&cb(); return; }
+  ss.cancel();
+  const u=new SpeechSynthesisUtterance(txt);
+
+  // Pokušaj naći ženski/dječji glas
+  const voices=ss.getVoices();
+  // Prioritet: hr glas → en ženski glas s visokim pitchom
+  const hr=voices.find(v=>v.lang.startsWith('hr'));
+  const feminine=voices.find(v=>/female|woman|girl|zira|samantha|karen|tessa|moira|fiona|victoria|kathy|princess/i.test(v.name));
+  const chosen=hr||feminine||voices[0];
+  if(chosen) u.voice=chosen;
+
+  u.lang=hr?'hr-HR':'hr-HR';
+  u.rate=1.05;    // malo brže = živahnije
+  u.pitch=1.5;    // visoki pitch = dječji glas!
+  u.volume=1.0;
+
+  const wave=document.getElementById('sound-wave');
+  const hint=document.getElementById('speak-hint');
+  if(wave){wave.classList.add('on'); if(hint) hint.style.display='none';}
+  u.onend=u.onerror=()=>{ if(wave){wave.classList.remove('on'); if(hint) hint.style.display='';} cb&&cb(); };
+  ss.speak(u);
+}
+
+function speakColor(){
+  playClick();
+  }
+
+// ================================================================
+// DOTS
+// ================================================================
+function initDots(){
+  ['boje','slova','broji','memorij','puzli'].forEach(g=>{
+    const c=document.getElementById('dots-'+g); if(!c) return;
+    c.innerHTML='';
+    for(let i=1;i<=10;i++){
+      const d=document.createElement('div');
+      d.className='dot'+(completed[g].has(i)?' done':'');
+      c.appendChild(d);
+    }
+  });
+}
+
+// ================================================================
+// NAV
+// ================================================================
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function goHome(){ ss&&ss.cancel(); clearInterval(memTimerInterval); initDots(); showScreen('screen-home'); }
+function selectGame(g){ G=g; showLevelSelect(); }
+function goLevels(){ ss&&ss.cancel(); clearInterval(memTimerInterval); puzDragPiece=null; puzDragEl=null; showLevelSelect(); }
+
+function showLevelSelect(){
+  const t={boje:'🎨 Boje',slova:'🔤 Slova',broji:'🔢 Brojevi',memorij:'🧠 Memorij',puzli:'🧩 Puzzle'};
+  document.getElementById('lvl-title').textContent=t[G]+' — Odaberi Level';
+  const grid=document.getElementById('level-grid'); grid.innerHTML='';
+  const pal=['#FF6B9D','#F97316','#FBBF24','#10B981','#06B6D4','#3B82F6','#A855F7','#EC4899','#84CC16','#78350F'];
+  for(let i=1;i<=10;i++){
+    const unlocked=i===1||completed[G].has(i-1);
+    const dn=completed[G].has(i);
+    const btn=document.createElement('button');
+    btn.className='lvl-btn'+(dn?' done':'')+(unlocked?'':' locked');
+    if(unlocked) btn.style.cssText=`background:linear-gradient(135deg,${pal[i-1]}22,var(--card));border-color:${pal[i-1]}55;`;
+    btn.innerHTML=`<span style="font-size:1.5rem;${!unlocked?'filter:grayscale(1)':''}">${unlocked?(dn?'⭐':'🎮'):'🔒'}</span><span>${i}</span><span class="lvl-num">LEVEL</span>`;
+    if(unlocked) btn.onclick=()=>{ if(G==='memorij') startMemory(i); else if(G==='puzli') startPuzzle(i); else startGame(i); };
+    grid.appendChild(btn);
+  }
+  showScreen('screen-levels');
+}
+
+// ================================================================
+// GAME
+// ================================================================
+// ================================================================
+// Svaki level = 1 tema (boja/slovo/broj)
+// 3 runde: runda 0=1 tocna, runda 1=2 tocne, runda 2=3 tocne
+// ================================================================
+
+function correctForRound(round){ return round+1; }   // 1, 2, 3
+function totalWrongItems(){ return 5; }               // uvijek 5 krivih opcija
+
+function startGame(lvl){
+  LVL=lvl; SCORE=0; ROUND=0; TOTAL=3;
+  document.getElementById('score-val').textContent='0';
+  document.getElementById('color-stage').style.display=G==='boje'?'flex':'none';
+  showScreen('screen-game');
+  loadRound();
+}
+
+function loadRound(){
+  if(ROUND>=TOTAL){ endLevel(); return; }
+  const pct=(ROUND/TOTAL*100);
+  document.getElementById('prog-bar').style.width=pct+'%';
+  const nc=correctForRound(ROUND);
+  document.getElementById('round-lbl').textContent=`Nađi ${nc} ${nc===1?'točan':'točna'}`;
+  done=false; wrongCount=0; selectedOk=new Set(); roundItems=[];
+  setFeedback('',''); document.getElementById('continue-btn').style.display='none';
+  if(G==='boje') loadColorRound();
+  else if(G==='slova') loadLetterRound();
+  else loadNumberRound();
+}
+
+// ---- COLOR ----
+function loadColorRound(){
+  const obj=COLORS[LVL-1];
+  colorName=obj.name;
+  const circle=document.getElementById('color-circle');
+  circle.style.background=obj.color;
+  circle.style.setProperty('--cc',obj.color);
+  document.getElementById('q-label').textContent='Klikni SVE što je ove boje 👆';
+  document.getElementById('q-text').textContent='';
+  document.getElementById('color-name-label').textContent=obj.name;
+
+  const nc=correctForRound(ROUND);
+  // Shuffle correct pool and pick nc items (different each round using ROUND as seed offset)
+  const corrPool=[...obj.correct].sort(()=>Math.random()-.5);
+  const corr=corrPool.slice(0,nc);
+  const wrong=[...obj.wrong].sort(()=>Math.random()-.5).slice(0,totalWrongItems());
+  correctSet=new Set(corr.map(x=>x.e));
+  roundItems=[...corr.map(x=>({e:x.e,l:x.l,ok:true})),...wrong.map(x=>({e:x.e,l:x.l,ok:false}))].sort(()=>Math.random()-.5);
+  renderClickItems();
+}
+
+// ---- LETTER ----
+function loadLetterRound(){
+  const obj=LETTERS[LVL-1];
+  document.getElementById('q-label').textContent='Klikni slike koje počinju s ovim slovom 👆';
+  document.getElementById('q-text').innerHTML=`<span style="font-size:4.5rem;font-family:'Fredoka One',cursive;filter:drop-shadow(0 0 20px rgba(168,85,247,.7))">${obj.letter}</span>`;
+
+  const nc=correctForRound(ROUND);
+  const corrPool=[...obj.correct].sort(()=>Math.random()-.5);
+  const corr=corrPool.slice(0,nc);
+  const wrong=[...obj.wrong].sort(()=>Math.random()-.5).slice(0,totalWrongItems());
+  correctSet=new Set(corr.map(x=>x.e));
+  roundItems=[...corr.map(x=>({e:x.e,l:x.l,ok:true})),...wrong.map(x=>({e:x.e,l:x.l,ok:false}))].sort(()=>Math.random()-.5);
+  renderClickItems();
+}
+
+// ---- NUMBER ----
+function loadNumberRound(){
+  const obj=NUMBERS[LVL-1];
+  currentN=obj.n;
+  document.getElementById('q-label').textContent='Klikni sve grupe s točnim brojem 👆';
+  document.getElementById('q-text').innerHTML=`<span style="font-size:5rem;font-family:'Fredoka One',cursive;filter:drop-shadow(0 0 24px rgba(16,185,129,.7))">${obj.n}</span>`;
+
+  const nc=correctForRound(ROUND);
+  const corrPool=[...obj.correct].sort(()=>Math.random()-.5);
+  const corr=corrPool.slice(0,nc);
+  const wrong=[...obj.wrong].sort(()=>Math.random()-.5).slice(0,totalWrongItems());
+  correctSet=new Set(corr.map(x=>x.e));
+  roundItems=[...corr.map(x=>({e:x.e,l:x.l,ok:true})),...wrong.map(x=>({e:x.e,l:x.l,ok:false}))].sort(()=>Math.random()-.5);
+  renderClickItems();
+}
+
+// ================================================================
+// RENDER
+// ================================================================
+function renderClickItems(){
+  const grid=document.getElementById('items-grid'); grid.innerHTML='';
+  roundItems.forEach(item=>{
+    const el=document.createElement('div');
+    el.className='click-item';
+    el.innerHTML=`<span class="ci-emoji">${item.e}</span><span class="ci-name">${item.l}</span>`;
+    el.onclick=()=>handleClick(el,item);
+    grid.appendChild(el);
+  });
+}
+
+
+
+// ================================================================
+// CLICK
+// ================================================================
+function handleClick(el,item){
+  if(done||el.classList.contains('c-disabled')) return;
+  if(item.ok){
+    selectedOk.add(item.e);
+    el.classList.add('c-correct','c-disabled');
+    el.innerHTML+=`<span class="ck">✅</span>`;
+    playCorrect();
+    if(selectedOk.size>=correctSet.size){
+      done=true;
+      revealAll();
+      SCORE+=Math.max(10-wrongCount*2,2);
+      document.getElementById('score-val').textContent=SCORE;
+      setFeedback('good',['🎉 Bravo!','✅ Točno!','🌟 Odlično!','👏 Super!'][Math.floor(Math.random()*4)]);
+      setTimeout(()=>{document.getElementById('continue-btn').style.display='block';},600);
+    }
+  } else {
+    wrongCount++;
+    el.classList.add('c-wrong');
+    playWrong();
+    setTimeout(()=>el.classList.remove('c-wrong'),400);
+    setFeedback('bad',['❌ Pokušaj ponovo!','🤔 Nije to...','Traži dalje!'][Math.floor(Math.random()*3)]);
+  }
+}
+
+
+
+function revealAll(){
+  document.querySelectorAll('.click-item').forEach(el=>{
+    el.classList.add('c-disabled');
+  });
+}
+
+function setFeedback(type,msg){
+  const bar=document.getElementById('feedback-bar');
+  bar.className='feedback-bar'+(type?' show '+type:'');
+  bar.textContent=msg;
+}
+
+function nextRound(){ ROUND++; loadRound(); }
+
+// ================================================================
+// END
+// ================================================================
+function endLevel(){
+  document.getElementById('prog-bar').style.width='100%';
+  completed[G].add(LVL);
+  const max=TOTAL*10, pct=SCORE/max;
+  const stars=pct>=.85?3:pct>=.55?2:1;
+  document.getElementById('res-emoji').textContent=stars===3?'🎉':stars===2?'😊':'💪';
+  document.getElementById('res-title').textContent=stars===3?'Savršeno!':stars===2?'Odlično!':'Probaj ponovo!';
+  document.getElementById('res-sub').textContent=`Bodovi: ${SCORE} / ${max}`;
+  document.getElementById('res-stars').innerHTML='⭐'.repeat(stars)+'☆'.repeat(3-stars);
+  document.getElementById('next-lvl-btn').style.display=LVL<10?'':'none';
+  document.getElementById('result-overlay').classList.add('show');
+  if(stars===3){
+    confetti();
+    setTimeout(playWin,200);
+  } else {
+    setTimeout(()=>playMelody([[440,0.18],[392,0.18],[349,0.35]],0.18),200);
+  }
+  if(stars>=2) setTimeout(()=>speak('Bravo!'),900);
+}
+function retryLevel(){ playClick(); document.getElementById('result-overlay').classList.remove('show'); if(G==='memorij') startMemory(LVL); else if(G==='puzli') startPuzzle(LVL); else startGame(LVL); }
+function nextLevel(){ playClick(); document.getElementById('result-overlay').classList.remove('show'); if(G==='memorij'){ if(LVL<10) startMemory(LVL+1); else goLevels(); } else if(G==='puzli'){ if(LVL<10) startPuzzle(LVL+1); else goLevels(); } else { if(LVL<10) startGame(LVL+1); else goLevels(); } }
+
+// ================================================================
+// CONFETTI
+// ================================================================
+function confetti(){
+  const cols=['#FF6B9D','#FBBF24','#10B981','#3B82F6','#A855F7','#F97316'];
+  for(let i=0;i<70;i++){
+    const el=document.createElement('div'); el.className='cf';
+    el.style.left=Math.random()*100+'vw';
+    el.style.background=cols[~~(Math.random()*cols.length)];
+    el.style.borderRadius=Math.random()>.5?'50%':'2px';
+    el.style.animationDuration=(1.5+Math.random()*2.5)+'s';
+    el.style.animationDelay=(Math.random()*.8)+'s';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),4500);
+  }
+}
+
+
+// ================================================================
+// MEMORY GAME
+// ================================================================
+const MEM_EMOJIS = [
+  '🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯',
+  '🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆',
+  '🦅','🦉','🦇','🐝','🐛','🦋','🐌','🐞','🐜','🦟',
+  '🌸','🌺','🌻','🌹','🍎','🍊','🍋','🍇','🍓','🍑',
+  '🎈','🎀','🎁','🎂','⭐','🌙','☀️','🌈','❄️','🎵'
+];
+
+let memCards=[], memFlipped=[], memMatched=0, memMoves=0, memPairs=0;
+let memBlocked=false, memTimer=0, memTimerInterval=null;
+const memCompleted = new Set();
+
+// Level config: [totalCards, pairsToFind]
+// lvl 1: 4 cards, 1 pair aktivan (ostale su dummy? Ne — svi su parovi)
+// Bolje: totalCards = pari*2, activePairs = ono sto treba naci
+const MEM_LEVELS = [
+  {cards:4,  pairs:1},  // lv1: 4 kartice, nađi 1 par
+  {cards:6,  pairs:1},  // lv2
+  {cards:8,  pairs:2},  // lv3
+  {cards:8,  pairs:2},  // lv4
+  {cards:10, pairs:3},  // lv5
+  {cards:10, pairs:3},  // lv6
+  {cards:12, pairs:4},  // lv7
+  {cards:12, pairs:4},  // lv8
+  {cards:16, pairs:5},  // lv9
+  {cards:16, pairs:6},  // lv10
+];
+
+function startMemory(lvl){
+  LVL=lvl; memMoves=0; memMatched=0; memFlipped=[]; memBlocked=false;
+  clearInterval(memTimerInterval); memTimer=0;
+  document.getElementById('mem-score-val').textContent='0';
+  document.getElementById('mem-moves-lbl').textContent='0 poteza';
+  document.getElementById('mem-timer').textContent='0';
+
+  const cfg=MEM_LEVELS[lvl-1];
+  memPairs=cfg.cards/2;  // ukupno parova = kartice/2 (sve kartice imaju par)
+
+  // Pick random emojis for this level
+  const shuffledEmojis=[...MEM_EMOJIS].sort(()=>Math.random()-.5).slice(0,memPairs);
+
+  // Create pairs array and shuffle
+  memCards=[...shuffledEmojis,...shuffledEmojis].sort(()=>Math.random()-.5);
+
+  // Update UI
+  document.getElementById('mem-pairs-info').textContent=
+    `Level ${lvl} — nađi sve ${memPairs} ${memPairs===1?'par':'parova'}!`;
+  document.getElementById('mem-pairs-left').textContent=memPairs;
+  document.getElementById('mem-prog-bar').style.width='0%';
+
+  // Build grid columns based on card count
+  const cols = cfg.cards<=6 ? 3 : cfg.cards<=10 ? 4 : 4;
+  const grid=document.getElementById('mem-grid');
+  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+
+  renderMemGrid();
+  showScreen('screen-memory');
+
+  // Start timer after first flip
+  memTimerInterval=null;
+
+}
+
+function renderMemGrid(){
+  const grid=document.getElementById('mem-grid');
+  grid.innerHTML='';
+  memCards.forEach((emoji,idx)=>{
+    const wrap=document.createElement('div');
+    wrap.className='mem-card-wrap';
+    wrap.dataset.idx=idx;
+    wrap.innerHTML=`
+      <div class="mem-card" id="mc-${idx}">
+        <div class="mem-card-face mem-card-back">
+          <span class="mem-card-back-icon">🌟</span>
+        </div>
+        <div class="mem-card-face mem-card-front">${emoji}</div>
+      </div>`;
+    wrap.addEventListener('click',()=>flipMemCard(idx,emoji));
+    grid.appendChild(wrap);
+  });
+}
+
+function flipMemCard(idx, emoji){
+  if(memBlocked) return;
+  const card=document.getElementById('mc-'+idx);
+  if(!card || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+  // Start timer on first flip
+  if(!memTimerInterval){
+    memTimerInterval=setInterval(()=>{
+      memTimer++;
+      document.getElementById('mem-timer').textContent=memTimer;
+    },1000);
+  }
+
+  card.classList.add('flipped');
+  memFlipped.push({idx,emoji});
+  playClick();
+
+  if(memFlipped.length===2){
+    memBlocked=true;
+    memMoves++;
+    document.getElementById('mem-moves-lbl').textContent=`${memMoves} potez${memMoves===1?'':'a'}`;
+
+    const [a,b]=memFlipped;
+    if(a.emoji===b.emoji){
+      // MATCH!
+      setTimeout(()=>{
+        document.getElementById('mc-'+a.idx).classList.add('matched');
+        document.getElementById('mc-'+b.idx).classList.add('matched');
+        memMatched++;
+        const left=memPairs-memMatched;
+        document.getElementById('mem-pairs-left').textContent=left;
+        document.getElementById('mem-prog-bar').style.width=(memMatched/memPairs*100)+'%';
+        playCorrect();
+        memFlipped=[];
+        memBlocked=false;
+        if(memMatched>=memPairs) setTimeout(endMemory,600);
+      },400);
+    } else {
+      // NO MATCH
+      setTimeout(()=>{
+        document.getElementById('mc-'+a.idx).classList.remove('flipped');
+        document.getElementById('mc-'+b.idx).classList.remove('flipped');
+        playWrong();
+        memFlipped=[];
+        memBlocked=false;
+      },900);
+    }
+  }
+}
+
+function endMemory(){
+  clearInterval(memTimerInterval);
+  completed[G].add(LVL);
+
+  // Score based on moves and time
+  const idealMoves=memPairs;
+  const efficiency=Math.max(0, 1-(memMoves-idealMoves)/(idealMoves*2));
+  const timeBonus=Math.max(0,1-memTimer/(memPairs*15));
+  const pct=(efficiency*0.7+timeBonus*0.3);
+  const stars=pct>=.7?3:pct>=.4?2:1;
+  const score=Math.round(pct*100);
+
+  document.getElementById('mem-score-val').textContent=score;
+  document.getElementById('res-emoji').textContent=stars===3?'🧠':stars===2?'😊':'💪';
+  document.getElementById('res-title').textContent=stars===3?'Genij!':stars===2?'Odlično!':'Probaj ponovo!';
+  document.getElementById('res-sub').textContent=`${memMoves} poteza • ${memTimer}s • Bodovi: ${score}`;
+  document.getElementById('res-stars').innerHTML='⭐'.repeat(stars)+'☆'.repeat(3-stars);
+  document.getElementById('next-lvl-btn').style.display=LVL<10?'':'none';
+  document.getElementById('result-overlay').classList.add('show');
+
+  if(stars===3){ confetti(); setTimeout(playWin,200); }
+  else { setTimeout(()=>playMelody([[440,0.18],[392,0.18],[349,0.35]],0.18),200); }
+  if(stars>=2) setTimeout(()=>speak('Bravo!'),900);
+}
+
+
+// ================================================================
+// PUZZLE GAME
+// ================================================================
+
+// Lijepe slike koje djeca vole — koristimo Canvas da nacrtamo
+// svaku sliku od emojija i boja
+const PUZZLE_IMAGES = [
+  { label:'🌈 Duga',     draw: drawRainbow },
+  { label:'🌻 Suncokret', draw: drawSunflower },
+  { label:'🐸 Žaba',     draw: drawFrog },
+  { label:'🚂 Vlak',     draw: drawTrain },
+  { label:'🏠 Kućica',   draw: drawHouse },
+  { label:'🐠 Riba',     draw: drawFish },
+  { label:'🌙 Noć',      draw: drawNight },
+  { label:'🦋 Leptir',   draw: drawButterfly },
+  { label:'🍎 Jabuka',   draw: drawApple },
+  { label:'🚀 Raketa',   draw: drawRocket },
+];
+
+// Level config: [cols, rows] — komadi
+const PUZ_LEVELS = [
+  {cols:2, rows:1},  // lv1: 2 komada
+  {cols:2, rows:2},  // lv2: 4 komada
+  {cols:4, rows:2},  // lv3: 8 komada
+  {cols:2, rows:1},  // lv4: 2 komada (nova slika)
+  {cols:2, rows:2},  // lv5: 4
+  {cols:4, rows:2},  // lv6: 8
+  {cols:2, rows:1},  // lv7
+  {cols:2, rows:2},  // lv8
+  {cols:4, rows:2},  // lv9
+  {cols:4, rows:2},  // lv10: 8 komada
+];
+
+let puzCols=2, puzRows=1, puzPieceW=0, puzPieceH=0;
+let puzPlaced=0, puzTotal=0;
+let puzDragPiece=null, puzDragEl=null;
+let puzCompleted = new Set();
+const PUZ_SIZE = 280; // canvas size
+
+function startPuzzle(lvl){
+  LVL=lvl;
+  const cfg=PUZ_LEVELS[lvl-1];
+  puzCols=cfg.cols; puzRows=cfg.rows;
+  puzTotal=puzCols*puzRows;
+  puzPlaced=0;
+  puzDragPiece=null; puzDragEl=null;
+
+  document.getElementById('puz-level-lbl').textContent=`Level ${lvl}`;
+  document.getElementById('puz-prog-bar').style.width='0%';
+  document.getElementById('puz-done-banner').style.display='none';
+  document.getElementById('puz-top-label').style.display='';
+  document.getElementById('puz-tray').style.display='';
+
+  // Draw full image on offscreen canvas
+  const imgIdx=(lvl-1) % PUZZLE_IMAGES.length;
+  const img=PUZZLE_IMAGES[imgIdx];
+  const full=document.createElement('canvas');
+  full.width=PUZ_SIZE; full.height=PUZ_SIZE;
+  img.draw(full.getContext('2d'), PUZ_SIZE, PUZ_SIZE);
+
+  // Store full canvas for later use in puzzleDone
+  window._puzFullCanvas = full;
+
+  // Preview
+  const prev=document.getElementById('puz-preview-canvas');
+  prev.width=110; prev.height=110;
+  prev.style.width='110px'; prev.style.height='110px';
+  prev.getContext('2d').drawImage(full,0,0,110,110);
+
+  // Piece size (use whole PUZ_SIZE divided evenly)
+  puzPieceW=Math.floor(PUZ_SIZE/puzCols);
+  puzPieceH=Math.floor(PUZ_SIZE/puzRows);
+
+  // Board
+  const board=document.getElementById('puz-board');
+  board.innerHTML='';
+  board.style.cssText=`display:grid;grid-template-columns:repeat(${puzCols},${puzPieceW}px);grid-template-rows:repeat(${puzRows},${puzPieceH}px);width:${puzPieceW*puzCols}px;height:${puzPieceH*puzRows}px;border-radius:16px;overflow:hidden;border:3px solid rgba(255,255,255,.15);box-shadow:0 8px 40px rgba(0,0,0,.5);position:relative;`;
+
+  for(let r=0;r<puzRows;r++){
+    for(let c=0;c<puzCols;c++){
+      const slot=document.createElement('div');
+      slot.className='puz-slot';
+      slot.style.width=puzPieceW+'px';
+      slot.style.height=puzPieceH+'px';
+      slot.dataset.col=c; slot.dataset.row=r;
+      setupSlotDrop(slot);
+      board.appendChild(slot);
+    }
+  }
+
+  // Build pieces — draw each piece directly onto its own canvas
+  const pieces=[];
+  for(let r=0;r<puzRows;r++){
+    for(let c=0;c<puzCols;c++){
+      const cv=document.createElement('canvas');
+      cv.width=puzPieceW; cv.height=puzPieceH;
+      cv.style.width=puzPieceW+'px';
+      cv.style.height=puzPieceH+'px';
+      // Draw the correct slice from full image
+      cv.getContext('2d').drawImage(full,
+        c*puzPieceW, r*puzPieceH, puzPieceW, puzPieceH,
+        0, 0, puzPieceW, puzPieceH);
+      cv.className='puz-piece';
+      cv.dataset.col=String(c);
+      cv.dataset.row=String(r);
+      setupPieceDrag(cv);
+      pieces.push(cv);
+    }
+  }
+
+  // Shuffle pieces into tray
+  pieces.sort(()=>Math.random()-.5);
+  const tray=document.getElementById('puz-tray');
+  tray.innerHTML='';
+  pieces.forEach(p=>tray.appendChild(p));
+
+  showScreen('screen-puzzle');
+}
+
+function setupPieceDrag(el){
+  el.draggable=true;
+  el.addEventListener('dragstart', e=>{
+    puzDragPiece={col:+el.dataset.col, row:+el.dataset.row};
+    puzDragEl=el;
+    el.classList.add('dragging-pc');
+    e.dataTransfer.setData('text/plain','piece');
+  });
+  el.addEventListener('dragend', ()=>el.classList.remove('dragging-pc'));
+
+  // Touch support
+  let ghost=null;
+  el.addEventListener('touchstart', e=>{
+    puzDragPiece={col:+el.dataset.col, row:+el.dataset.row};
+    puzDragEl=el;
+    const t=e.touches[0];
+    ghost=document.createElement('canvas');
+    ghost.width=puzPieceW; ghost.height=puzPieceH;
+    ghost.getContext('2d').drawImage(el,0,0);
+    ghost.style.cssText=`position:fixed;width:${puzPieceW}px;height:${puzPieceH}px;opacity:.8;pointer-events:none;z-index:999;border-radius:10px;left:${t.clientX-puzPieceW/2}px;top:${t.clientY-puzPieceH/2}px;`;
+    document.body.appendChild(ghost);
+    el.style.opacity='.3';
+  },{passive:true});
+  el.addEventListener('touchmove', e=>{
+    if(!ghost) return;
+    const t=e.touches[0];
+    ghost.style.left=(t.clientX-puzPieceW/2)+'px';
+    ghost.style.top=(t.clientY-puzPieceH/2)+'px';
+    e.preventDefault();
+  },{passive:false});
+  el.addEventListener('touchend', e=>{
+    if(ghost){ ghost.remove(); ghost=null; }
+    el.style.opacity='';
+    const t=e.changedTouches[0];
+    const hit=document.elementFromPoint(t.clientX, t.clientY);
+    const slot=hit&&hit.closest('.puz-slot');
+    if(slot) dropOnSlot(slot);
+    else { puzDragPiece=null; puzDragEl=null; }
+  });
+}
+
+function setupSlotDrop(slot){
+  slot.addEventListener('dragover', e=>{ e.preventDefault(); if(!slot.classList.contains('filled')) slot.classList.add('over'); });
+  slot.addEventListener('dragleave', ()=>slot.classList.remove('over'));
+  slot.addEventListener('drop', e=>{ e.preventDefault(); slot.classList.remove('over'); dropOnSlot(slot); });
+}
+
+function dropOnSlot(slot){
+  if(!puzDragPiece||!puzDragEl) return;
+  if(slot.classList.contains('filled')) return;
+
+  const sc=+slot.dataset.col, sr=+slot.dataset.row;
+
+  if(puzDragPiece.col===sc && puzDragPiece.row===sr){
+    // CORRECT — draw piece directly onto slot using a new canvas
+    const placed=document.createElement('canvas');
+    placed.width=puzPieceW; placed.height=puzPieceH;
+    placed.style.cssText=`display:block;width:${puzPieceW}px;height:${puzPieceH}px;`;
+    // Copy pixel data from drag source canvas
+    placed.getContext('2d').drawImage(puzDragEl, 0, 0);
+
+    slot.innerHTML='';
+    slot.classList.add('filled','correct-flash');
+    slot.style.padding='0';
+    slot.style.border='none';
+    slot.appendChild(placed);
+
+    puzDragEl.remove();
+    playCorrect();
+    puzPlaced++;
+    document.getElementById('puz-prog-bar').style.width=(puzPlaced/puzTotal*100)+'%';
+    if(puzPlaced>=puzTotal) setTimeout(puzzleDone, 500);
+  } else {
+    playWrong();
+    slot.classList.add('over');
+    setTimeout(()=>slot.classList.remove('over'),400);
+  }
+  puzDragPiece=null; puzDragEl=null;
+}
+
+function puzzleDone(){
+  completed['puzli'].add(LVL);
+  confetti();
+  setTimeout(playWin, 200);
+  setTimeout(()=>speak('Bravo!'), 600);
+
+  // Overlay full completed image on board with pop animation
+  const board=document.getElementById('puz-board');
+  const fullCv=document.createElement('canvas');
+  fullCv.width=puzPieceW*puzCols; fullCv.height=puzPieceH*puzRows;
+  fullCv.getContext('2d').drawImage(window._puzFullCanvas, 0, 0, puzPieceW*puzCols, puzPieceH*puzRows);
+  fullCv.style.cssText=`position:absolute;inset:0;width:100%;height:100%;border-radius:13px;z-index:2;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);`;
+  board.appendChild(fullCv);
+
+  document.getElementById('puz-done-banner').style.display='block';
+  document.getElementById('puz-top-label').style.display='none';
+  document.getElementById('puz-tray').style.display='none';
+
+  setTimeout(()=>{
+    document.getElementById('res-emoji').textContent='🧩';
+    document.getElementById('res-title').textContent=LVL<10?'Bravo! Idemo dalje!':'Završio si sve puzzleve!';
+    document.getElementById('res-sub').textContent=`Level ${LVL} — složeno!`;
+    document.getElementById('res-stars').innerHTML='⭐⭐⭐';
+    document.getElementById('next-lvl-btn').style.display=LVL<10?'':'none';
+    document.getElementById('result-overlay').classList.add('show');
+  }, 1400);
+}
+
+// ================================================================
+// DRAW FUNCTIONS — crtamo slike emojijima na canvasu
+// ================================================================
+// Compat roundRect for older browsers
+function rrect(ctx, x, y, w, h, r){
+  if(typeof r==='number') r=[r,r,r,r];
+  ctx.beginPath();
+  ctx.moveTo(x+r[0],y);
+  ctx.lineTo(x+w-r[1],y); ctx.quadraticCurveTo(x+w,y,x+w,y+r[1]);
+  ctx.lineTo(x+w,y+h-r[2]); ctx.quadraticCurveTo(x+w,y+h,x+w-r[2],y+h);
+  ctx.lineTo(x+r[3],y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r[3]);
+  ctx.lineTo(x,y+r[0]); ctx.quadraticCurveTo(x,y,x+r[0],y);
+  ctx.closePath();
+}
+function drawRainbow(ctx, w, h){
+  // Sky
+  const sky=ctx.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,'#87CEEB'); sky.addColorStop(1,'#E0F4FF');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
+  // Rainbow arcs
+  const colors=['#FF0000','#FF7F00','#FFFF00','#00CC00','#0000FF','#8B00FF'];
+  const cx=w/2, cy=h*0.85, baseR=w*0.7;
+  colors.forEach((c,i)=>{
+    ctx.beginPath();
+    ctx.strokeStyle=c; ctx.lineWidth=w*0.055;
+    ctx.arc(cx,cy,baseR-i*w*0.065,Math.PI,0);
+    ctx.stroke();
+  });
+  // Green ground
+  ctx.fillStyle='#5DB85D';
+  ctx.fillRect(0,h*0.85,w,h*0.15);
+  // Clouds
+  drawCloud(ctx, w*0.12, h*0.18, w*0.12);
+  drawCloud(ctx, w*0.78, h*0.12, w*0.1);
+}
+
+function drawCloud(ctx,x,y,r){
+  ctx.fillStyle='white';
+  [[0,0,1],[-.5,-.2,.7],[.5,-.15,.75],[-.9,.1,.6],[.9,.1,.6]].forEach(([dx,dy,s])=>{
+    ctx.beginPath(); ctx.arc(x+dx*r,y+dy*r,r*s,0,Math.PI*2); ctx.fill();
+  });
+}
+
+function drawSunflower(ctx, w, h){
+  // Sky
+  ctx.fillStyle='#87CEEB'; ctx.fillRect(0,0,w,h*0.65);
+  // Ground
+  ctx.fillStyle='#6DB56D'; ctx.fillRect(0,h*0.65,w,h*0.35);
+  // Stem
+  ctx.strokeStyle='#4a7c3f'; ctx.lineWidth=w*0.06;
+  ctx.beginPath(); ctx.moveTo(w/2,h*0.65); ctx.lineTo(w/2,h*0.35); ctx.stroke();
+  // Petals
+  const cx=w/2, cy=h*0.3, pr=w*0.18, pd=w*0.22;
+  ctx.fillStyle='#FFD700';
+  for(let i=0;i<12;i++){
+    const a=i/12*Math.PI*2;
+    ctx.beginPath();
+    ctx.ellipse(cx+Math.cos(a)*pd, cy+Math.sin(a)*pd, pr*0.45, pr*0.2, a, 0, Math.PI*2);
+    ctx.fill();
+  }
+  // Center
+  ctx.fillStyle='#8B4513';
+  ctx.beginPath(); ctx.arc(cx,cy,pr*0.55,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#6B3410';
+  for(let i=0;i<20;i++){
+    const a=Math.random()*Math.PI*2, r=Math.random()*pr*0.45;
+    ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,2,0,Math.PI*2); ctx.fill();
+  }
+}
+
+function drawFrog(ctx, w, h){
+  ctx.fillStyle='#87CEEB'; ctx.fillRect(0,0,w,h);
+  // Lily pad
+  ctx.fillStyle='#2D8A2D';
+  ctx.beginPath(); ctx.ellipse(w/2,h*0.78,w*0.42,h*0.18,0,0,Math.PI*2); ctx.fill();
+  // Body
+  ctx.fillStyle='#3CB371';
+  ctx.beginPath(); ctx.ellipse(w/2,h*0.58,w*0.3,h*0.22,0,0,Math.PI*2); ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.ellipse(w/2,h*0.38,w*0.26,h*0.2,0,0,Math.PI*2); ctx.fill();
+  // Eyes
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(w*0.38,h*0.3,w*0.08,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w*0.62,h*0.3,w*0.08,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1a1a1a';
+  ctx.beginPath(); ctx.arc(w*0.39,h*0.3,w*0.04,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w*0.63,h*0.3,w*0.04,0,Math.PI*2); ctx.fill();
+  // Smile
+  ctx.strokeStyle='#1a5c1a'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(w/2,h*0.42,w*0.1,0.2,Math.PI-0.2); ctx.stroke();
+  // Legs
+  ctx.fillStyle='#3CB371';
+  ctx.beginPath(); ctx.ellipse(w*0.22,h*0.68,w*0.1,h*0.06,-0.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(w*0.78,h*0.68,w*0.1,h*0.06,0.5,0,Math.PI*2); ctx.fill();
+}
+
+function drawTrain(ctx, w, h){
+  // Sky
+  ctx.fillStyle='#B8D4E8'; ctx.fillRect(0,0,w,h*0.6);
+  // Ground
+  ctx.fillStyle='#8B7355'; ctx.fillRect(0,h*0.78,w,h*0.22);
+  // Rails
+  ctx.strokeStyle='#555'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(0,h*0.82); ctx.lineTo(w,h*0.82); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,h*0.88); ctx.lineTo(w,h*0.88); ctx.stroke();
+  for(let x=0;x<w;x+=w*0.1){
+    ctx.beginPath(); ctx.moveTo(x,h*0.82); ctx.lineTo(x,h*0.88); ctx.stroke();
+  }
+  // Train body
+  ctx.fillStyle='#E53935';
+  rrect(ctx,w*0.05,h*0.52,w*0.8,h*0.28,8); ctx.fill;
+  // Windows
+  ctx.fillStyle='#FFD54F';
+  [0.18,0.42,0.66].forEach(xp=>{
+    rrect(ctx,w*xp,h*0.57,w*0.18,h*0.12,4); ctx.fill;
+  });
+  // Chimney
+  ctx.fillStyle='#B71C1C';
+  ctx.fillRect(w*0.62,h*0.42,w*0.1,h*0.12);
+  // Smoke
+  ctx.fillStyle='rgba(200,200,200,.7)';
+  ctx.beginPath(); ctx.arc(w*0.67,h*0.35,w*0.06,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w*0.71,h*0.28,w*0.04,0,Math.PI*2); ctx.fill();
+  // Wheels
+  ctx.fillStyle='#333';
+  [0.2,0.45,0.7].forEach(xp=>{
+    ctx.beginPath(); ctx.arc(w*xp,h*0.82,w*0.08,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#666';
+    ctx.beginPath(); ctx.arc(w*xp,h*0.82,w*0.04,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#333';
+  });
+}
+
+function drawHouse(ctx, w, h){
+  // Sky
+  const sky=ctx.createLinearGradient(0,0,0,h*0.6);
+  sky.addColorStop(0,'#4FC3F7'); sky.addColorStop(1,'#B3E5FC');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h*0.6);
+  // Ground
+  ctx.fillStyle='#81C784'; ctx.fillRect(0,h*0.72,w,h*0.28);
+  // Path
+  ctx.fillStyle='#D4A76A';
+  ctx.beginPath(); ctx.moveTo(w*0.4,h); ctx.lineTo(w*0.6,h); ctx.lineTo(w*0.55,h*0.72); ctx.lineTo(w*0.45,h*0.72); ctx.fill();
+  // House walls
+  ctx.fillStyle='#FFF9C4';
+  rrect(ctx,w*0.12,h*0.44,w*0.76,h*0.3,4); ctx.fill;
+  ctx.strokeStyle='#E6D670'; ctx.lineWidth=2; ctx.stroke();
+  // Roof
+  ctx.fillStyle='#E53935';
+  ctx.beginPath(); ctx.moveTo(w*0.05,h*0.45); ctx.lineTo(w/2,h*0.18); ctx.lineTo(w*0.95,h*0.45); ctx.fill();
+  // Door
+  ctx.fillStyle='#795548';
+  rrect(ctx,w*0.43,h*0.6,w*0.14,h*0.14,3,3,0,0); ctx.fill;
+  ctx.fillStyle='#FFD700';
+  ctx.beginPath(); ctx.arc(w*0.54,h*0.67,2.5,0,Math.PI*2); ctx.fill();
+  // Windows
+  ctx.fillStyle='#81D4FA';
+  [[0.2,0.51],[0.67,0.51]].forEach(([x,y])=>{
+    rrect(ctx,w*x,h*y,w*0.16,h*0.1,3); ctx.fill;
+    ctx.strokeStyle='#29B6F6'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.strokeStyle='#B0BEC5'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(w*x+w*0.08,h*y); ctx.lineTo(w*x+w*0.08,h*(y+0.1)); ctx.stroke();
+  });
+  // Chimney
+  ctx.fillStyle='#8D6E63';
+  ctx.fillRect(w*0.65,h*0.24,w*0.1,h*0.12);
+  // Sun
+  ctx.fillStyle='#FFD700';
+  ctx.beginPath(); ctx.arc(w*0.82,h*0.12,w*0.07,0,Math.PI*2); ctx.fill();
+  drawCloud(ctx,w*0.2,h*0.1,w*0.09);
+}
+
+function drawFish(ctx, w, h){
+  // Underwater gradient
+  const sea=ctx.createLinearGradient(0,0,0,h);
+  sea.addColorStop(0,'#006994'); sea.addColorStop(1,'#003355');
+  ctx.fillStyle=sea; ctx.fillRect(0,0,w,h);
+  // Bubbles
+  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=1.5;
+  [[0.2,0.15],[0.75,0.25],[0.5,0.08],[0.85,0.4]].forEach(([x,y])=>{
+    ctx.beginPath(); ctx.arc(w*x,h*y,w*0.03,0,Math.PI*2); ctx.stroke();
+  });
+  // Seaweed
+  ctx.strokeStyle='#2E8B57'; ctx.lineWidth=5;
+  [[0.12,0.2],[0.88,0.15]].forEach(([x,sw])=>{
+    ctx.beginPath();
+    ctx.moveTo(w*x,h);
+    for(let i=0;i<6;i++) ctx.quadraticCurveTo(w*(x+(i%2?0.06:-0.06)),h*(1-i*0.15),w*x,h*(0.85-i*0.15));
+    ctx.stroke();
+  });
+  // Fish body
+  ctx.fillStyle='#FF7043';
+  ctx.beginPath(); ctx.ellipse(w*0.5,h*0.5,w*0.3,h*0.18,0,0,Math.PI*2); ctx.fill();
+  // Scales
+  ctx.strokeStyle='#E64A19'; ctx.lineWidth=1;
+  for(let i=0;i<3;i++) for(let j=0;j<2;j++){
+    ctx.beginPath();
+    ctx.arc(w*(0.38+i*0.09),h*(0.45+j*0.08),w*0.05,Math.PI,Math.PI*2);
+    ctx.stroke();
+  }
+  // Tail
+  ctx.fillStyle='#FF8A65';
+  ctx.beginPath(); ctx.moveTo(w*0.2,h*0.5); ctx.lineTo(w*0.05,h*0.35); ctx.lineTo(w*0.05,h*0.65); ctx.fill();
+  // Eye
+  ctx.fillStyle='white';
+  ctx.beginPath(); ctx.arc(w*0.66,h*0.46,w*0.05,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(w*0.67,h*0.46,w*0.025,0,Math.PI*2); ctx.fill();
+  // Fin top
+  ctx.fillStyle='#FF8A65';
+  ctx.beginPath(); ctx.moveTo(w*0.45,h*0.33); ctx.quadraticCurveTo(w*0.52,h*0.22,w*0.6,h*0.34); ctx.lineTo(w*0.55,h*0.37); ctx.fill();
+  // Sand bottom
+  ctx.fillStyle='#C2A07A';
+  ctx.fillRect(0,h*0.85,w,h*0.15);
+  // Pebbles
+  ctx.fillStyle='#A0876A';
+  [[0.1,0.88],[0.3,0.9],[0.6,0.87],[0.8,0.91]].forEach(([x,y])=>{
+    ctx.beginPath(); ctx.ellipse(w*x,h*y,w*0.05,h*0.025,0,0,Math.PI*2); ctx.fill();
+  });
+}
+
+function drawNight(ctx, w, h){
+  const sky=ctx.createLinearGradient(0,0,0,h*0.75);
+  sky.addColorStop(0,'#0D1B4B'); sky.addColorStop(1,'#1A237E');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h*0.75);
+  // Stars
+  ctx.fillStyle='#FFF';
+  for(let i=0;i<40;i++){
+    const x=Math.random()*w, y=Math.random()*h*0.65;
+    const s=Math.random()*2.5+0.5;
+    ctx.beginPath(); ctx.arc(x,y,s,0,Math.PI*2); ctx.fill();
+  }
+  // Moon
+  ctx.fillStyle='#FFF9C4';
+  ctx.beginPath(); ctx.arc(w*0.78,h*0.15,w*0.1,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1A237E';
+  ctx.beginPath(); ctx.arc(w*0.84,h*0.13,w*0.09,0,Math.PI*2); ctx.fill();
+  // Ground
+  ctx.fillStyle='#1B5E20'; ctx.fillRect(0,h*0.75,w,h*0.25);
+  // Hills
+  ctx.fillStyle='#2E7D32';
+  ctx.beginPath(); ctx.arc(w*0.2,h*0.75,w*0.28,0,Math.PI,true); ctx.fill();
+  ctx.beginPath(); ctx.arc(w*0.75,h*0.75,w*0.22,0,Math.PI,true); ctx.fill();
+  // Trees
+  [[0.1,0.6],[0.9,0.55]].forEach(([x,y])=>{
+    ctx.fillStyle='#4CAF50';
+    ctx.beginPath(); ctx.arc(w*x,h*y,w*0.1,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#795548';
+    ctx.fillRect(w*x-w*0.02,h*(y+0.1),w*0.04,h*0.1);
+  });
+}
+
+function drawButterfly(ctx, w, h){
+  const bg=ctx.createLinearGradient(0,0,w,h);
+  bg.addColorStop(0,'#E8F5E9'); bg.addColorStop(1,'#F3E5F5');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+  // Flowers in bg
+  [[0.1,0.8],[0.85,0.75],[0.5,0.85],[0.25,0.9],[0.7,0.88]].forEach(([x,y])=>{
+    ctx.fillStyle='#FFB300';
+    ctx.beginPath(); ctx.arc(w*x,h*y,w*0.04,0,Math.PI*2); ctx.fill();
+    ['#E91E63','#FF7043','#9C27B0'].forEach((c,i)=>{
+      ctx.fillStyle=c;
+      ctx.beginPath();
+      const a=i/3*Math.PI*2;
+      ctx.ellipse(w*x+Math.cos(a)*w*0.06,h*y+Math.sin(a)*h*0.06,w*0.04,h*0.025,a,0,Math.PI*2);
+      ctx.fill();
+    });
+  });
+  // Wings
+  const wingColors=[['#FF9800','#F57C00'],['#FF5722','#E64A19']];
+  // Top wings
+  [[0.32,0.42,-0.5,1],[0.68,0.42,0.5,1]].forEach(([cx,cy,rot,s],i)=>{
+    ctx.fillStyle=wingColors[0][0];
+    ctx.save(); ctx.translate(w*cx,h*cy); ctx.rotate(rot);
+    ctx.beginPath(); ctx.ellipse(0,0,w*0.22,h*0.22,0,0,Math.PI*2); ctx.fill();
+    // Pattern
+    ctx.fillStyle=wingColors[0][1];
+    ctx.beginPath(); ctx.arc(w*(i?0.06:-0.06),0,w*0.07,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+  // Bottom wings
+  [[0.35,0.62,-0.3,1],[0.65,0.62,0.3,1]].forEach(([cx,cy,rot])=>{
+    ctx.fillStyle=wingColors[1][0];
+    ctx.save(); ctx.translate(w*cx,h*cy); ctx.rotate(rot);
+    ctx.beginPath(); ctx.ellipse(0,0,w*0.18,h*0.15,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+  // Body
+  ctx.fillStyle='#3E2723';
+  ctx.beginPath(); ctx.ellipse(w/2,h*0.52,w*0.04,h*0.22,0,0,Math.PI*2); ctx.fill();
+  // Head
+  ctx.fillStyle='#4E342E';
+  ctx.beginPath(); ctx.arc(w/2,h*0.3,w*0.05,0,Math.PI*2); ctx.fill();
+  // Antennae
+  ctx.strokeStyle='#4E342E'; ctx.lineWidth=2;
+  [[-0.06,-0.08],[0.06,-0.08]].forEach(([dx,dy])=>{
+    ctx.beginPath(); ctx.moveTo(w/2,h*0.3);
+    ctx.quadraticCurveTo(w*(0.5+dx*2),h*0.18,w*(0.5+dx),h*0.14); ctx.stroke();
+    ctx.fillStyle='#FF9800';
+    ctx.beginPath(); ctx.arc(w*(0.5+dx),h*0.14,w*0.02,0,Math.PI*2); ctx.fill();
+  });
+}
+
+function drawApple(ctx, w, h){
+  const bg=ctx.createLinearGradient(0,0,0,h);
+  bg.addColorStop(0,'#E8F5E9'); bg.addColorStop(1,'#C8E6C9');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+  // Leaf
+  ctx.fillStyle='#388E3C';
+  ctx.beginPath();
+  ctx.moveTo(w/2,h*0.18);
+  ctx.quadraticCurveTo(w*0.68,h*0.06,w*0.72,h*0.22);
+  ctx.quadraticCurveTo(w*0.6,h*0.28,w/2,h*0.18);
+  ctx.fill();
+  ctx.strokeStyle='#2E7D32'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(w/2,h*0.18); ctx.lineTo(w*0.65,h*0.18); ctx.stroke();
+  // Stem
+  ctx.strokeStyle='#5D4037'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(w*0.5,h*0.25); ctx.quadraticCurveTo(w*0.55,h*0.18,w*0.52,h*0.14); ctx.stroke();
+  // Apple body
+  const grad=ctx.createRadialGradient(w*0.42,h*0.4,w*0.02,w/2,h*0.55,w*0.38);
+  grad.addColorStop(0,'#FF5252'); grad.addColorStop(0.6,'#F44336'); grad.addColorStop(1,'#B71C1C');
+  ctx.fillStyle=grad;
+  ctx.beginPath();
+  ctx.moveTo(w/2,h*0.26);
+  ctx.bezierCurveTo(w*0.22,h*0.26,w*0.12,h*0.45,w*0.15,h*0.62);
+  ctx.bezierCurveTo(w*0.18,h*0.82,w*0.35,h*0.88,w*0.5,h*0.88);
+  ctx.bezierCurveTo(w*0.65,h*0.88,w*0.82,h*0.82,w*0.85,h*0.62);
+  ctx.bezierCurveTo(w*0.88,h*0.45,w*0.78,h*0.26,w*0.5,h*0.26);
+  ctx.fill();
+  // Shine
+  ctx.fillStyle='rgba(255,255,255,.35)';
+  ctx.beginPath(); ctx.ellipse(w*0.38,h*0.42,w*0.1,h*0.07,-0.4,0,Math.PI*2); ctx.fill();
+}
+
+function drawRocket(ctx, w, h){
+  // Space bg
+  ctx.fillStyle='#0D0A2A'; ctx.fillRect(0,0,w,h);
+  // Stars
+  ctx.fillStyle='white';
+  for(let i=0;i<50;i++){
+    ctx.beginPath(); ctx.arc(Math.random()*w,Math.random()*h,Math.random()*1.5+0.3,0,Math.PI*2); ctx.fill();
+  }
+  // Planet
+  ctx.fillStyle='#7986CB';
+  ctx.beginPath(); ctx.arc(w*0.82,h*0.2,w*0.1,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#9FA8DA'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.ellipse(w*0.82,h*0.2,w*0.17,h*0.04,0.3,0,Math.PI*2); ctx.stroke();
+  // Flame
+  [[0,'#FF6D00',0.18],[0.04,'#FFD600',0.12],[-0.04,'#FF9100',0.14]].forEach(([dx,c,s])=>{
+    const fg=ctx.createRadialGradient(w*(0.5+dx),h*0.85,0,w*(0.5+dx),h*0.85,w*s);
+    fg.addColorStop(0,c); fg.addColorStop(1,'transparent');
+    ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(w*(0.5+dx),h*0.85,w*s,0,Math.PI*2); ctx.fill();
+  });
+  // Body
+  const rg=ctx.createLinearGradient(w*0.35,0,w*0.65,0);
+  rg.addColorStop(0,'#B0BEC5'); rg.addColorStop(0.5,'#ECEFF1'); rg.addColorStop(1,'#B0BEC5');
+  ctx.fillStyle=rg;
+  rrect(ctx,w*0.38,h*0.38,w*0.24,h*0.42,8); ctx.fill;
+  // Nose cone
+  ctx.fillStyle='#EF5350';
+  ctx.beginPath(); ctx.moveTo(w*0.38,h*0.38); ctx.lineTo(w/2,h*0.18); ctx.lineTo(w*0.62,h*0.38); ctx.fill();
+  // Window
+  ctx.fillStyle='#81D4FA';
+  ctx.beginPath(); ctx.arc(w/2,h*0.51,w*0.08,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#29B6F6'; ctx.lineWidth=2; ctx.stroke();
+  // Wings
+  ctx.fillStyle='#EF5350';
+  ctx.beginPath(); ctx.moveTo(w*0.38,h*0.7); ctx.lineTo(w*0.2,h*0.82); ctx.lineTo(w*0.38,h*0.8); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(w*0.62,h*0.7); ctx.lineTo(w*0.8,h*0.82); ctx.lineTo(w*0.62,h*0.8); ctx.fill();
+}
+
+// BOOT
+ss&&ss.getVoices();
+ss&&ss.addEventListener('voiceschanged',()=>{});
+initDots();
+
+// Jingle na prvi klik (browser zahtijeva user interaction za audio)
+let jinglePlayed=false;
+document.addEventListener('click',()=>{
+  if(!jinglePlayed){ jinglePlayed=true; setTimeout(playJingle,80); }
+},{once:true});
+</script>
+</body>
+</html>
