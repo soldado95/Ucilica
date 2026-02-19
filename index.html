@@ -74,6 +74,10 @@
   .gc-memorij:hover { border-color:#FBBF24; box-shadow:0 20px 50px rgba(251,191,36,.3); }
   .gc-puzli { border-color:rgba(6,182,212,.25); }
   .gc-puzli:hover { border-color:#06B6D4; box-shadow:0 20px 50px rgba(6,182,212,.3); }
+  .gc-umetaljka { border-color:rgba(16,185,129,.25); }
+  .gc-umetaljka:hover { border-color:#10B981; box-shadow:0 20px 50px rgba(16,185,129,.3); }
+  .gc-govor { border-color:rgba(236,72,153,.25); }
+  .gc-govor:hover { border-color:#EC4899; box-shadow:0 20px 50px rgba(236,72,153,.3); }
 
   /* ======= PUZZLE ======= */
   .puz-screen { width:100%; max-width:680px; display:flex; flex-direction:column; align-items:center; gap:16px; }
@@ -371,6 +375,226 @@
     margin-bottom:10px; text-align:center;
   }
 
+
+  /* ======= UMETALJKA ======= */
+  #screen-umetaljka {
+    padding:0 !important;
+    align-items:center;
+  }
+  /* Scene canvas */
+  #umet-scene-canvas {
+    display:block;
+    width:100%;
+    max-width:100%;
+    touch-action:none;
+  }
+  /* Piece tray */
+  .umet-tray {
+    width:100%;
+    display:flex; gap:14px; justify-content:center; align-items:center;
+    padding:12px 16px 18px;
+    background:rgba(8,4,28,.97);
+    border-top:2px solid rgba(255,255,255,.08);
+    flex-wrap:wrap;
+    min-height:100px;
+  }
+  .umet-piece {
+    cursor:grab;
+    border-radius:18px;
+    box-shadow:0 6px 20px rgba(0,0,0,.45);
+    transition:transform .18s, box-shadow .18s;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:none;
+    animation:pieceFloat 3s ease-in-out infinite;
+    border:3px solid rgba(255,255,255,.25);
+  }
+  .umet-piece:nth-child(2){animation-delay:.5s;}
+  .umet-piece:nth-child(3){animation-delay:1s;}
+  .umet-piece:nth-child(4){animation-delay:1.5s;}
+  @keyframes pieceFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .umet-piece:hover{transform:scale(1.12) translateY(-5px);box-shadow:0 14px 32px rgba(0,0,0,.5);}
+  .umet-piece.dragging-piece{opacity:.25;animation:none;transform:scale(.95);}
+
+  /* Top bar overlay */
+  #screen-umetaljka .game-top {
+    position:relative; z-index:10;
+    width:100%; max-width:100%;
+    margin-bottom:0;
+  }
+
+  /* Task label */
+  .umet-task-label {
+    font-family:'Fredoka One',cursive;
+    font-size:1rem; color:rgba(255,255,255,.7);
+    padding:4px 0 8px;
+    text-align:center;
+    width:100%;
+  }
+
+  /* Slot glow on hover */
+  .slot-over-glow {
+    filter: drop-shadow(0 0 12px #10B981) drop-shadow(0 0 24px #10B981);
+  }
+
+
+  /* ======= GOVORIMO ======= */
+  .govor-screen {
+    width:100%; max-width:520px;
+    display:flex; flex-direction:column; align-items:center;
+    gap:0; padding:0 16px;
+  }
+
+  /* Big word card */
+  .govor-card {
+    width:100%;
+    background:var(--card);
+    border-radius:32px;
+    border:2px solid rgba(255,255,255,.08);
+    padding:28px 20px 24px;
+    display:flex; flex-direction:column; align-items:center;
+    gap:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    position:relative;
+    overflow:hidden;
+  }
+  .govor-card::before {
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse at 30% 20%, rgba(236,72,153,.12), transparent 65%),
+               radial-gradient(ellipse at 70% 80%, rgba(168,85,247,.1), transparent 65%);
+    pointer-events:none;
+  }
+
+  /* Giant emoji */
+  .govor-emoji {
+    font-size:clamp(5rem,22vw,9rem);
+    line-height:1;
+    animation:emojiPop .5s cubic-bezier(.34,1.56,.64,1);
+    filter:drop-shadow(0 8px 24px rgba(0,0,0,.4));
+    cursor:pointer;
+    transition:transform .15s;
+    user-select:none;
+  }
+  .govor-emoji:active { transform:scale(.9); }
+  @keyframes emojiPop {
+    0%{transform:scale(0) rotate(-10deg);opacity:0}
+    100%{transform:scale(1) rotate(0);opacity:1}
+  }
+
+  /* Word display */
+  .govor-word {
+    font-family:'Fredoka One',cursive;
+    font-size:clamp(2.8rem,10vw,4.5rem);
+    text-align:center;
+    letter-spacing:2px;
+    animation:wordSlide .4s ease;
+  }
+  @keyframes wordSlide{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
+
+  /* Syllable breakdown */
+  .govor-syllables {
+    font-family:'Fredoka One',cursive;
+    font-size:clamp(1.1rem,4vw,1.5rem);
+    color:rgba(255,255,255,.4);
+    letter-spacing:4px;
+    text-transform:uppercase;
+  }
+
+  /* Action buttons row */
+  .govor-btns {
+    display:flex; gap:14px; justify-content:center;
+    width:100%; margin-top:20px;
+  }
+  .govor-btn {
+    flex:1; max-width:160px;
+    padding:18px 10px;
+    border-radius:22px;
+    border:none; cursor:pointer;
+    font-family:'Fredoka One',cursive;
+    font-size:1.2rem;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .govor-btn:active { transform:scale(.93); }
+  .govor-btn-listen {
+    background:linear-gradient(135deg,#3B82F6,#06B6D4);
+    color:white; box-shadow:0 8px 24px rgba(59,130,246,.4);
+  }
+  .govor-btn-listen:hover { transform:scale(1.06); box-shadow:0 12px 32px rgba(59,130,246,.5); }
+  .govor-btn-speak {
+    background:linear-gradient(135deg,#EC4899,#A855F7);
+    color:white; box-shadow:0 8px 24px rgba(236,72,153,.4);
+  }
+  .govor-btn-speak:hover { transform:scale(1.06); box-shadow:0 12px 32px rgba(236,72,153,.5); }
+  .govor-btn-icon { font-size:1.8rem; }
+
+  /* Nav arrows */
+  .govor-nav {
+    display:flex; align-items:center; gap:20px;
+    margin-top:18px; width:100%; justify-content:center;
+  }
+  .govor-nav-btn {
+    width:58px; height:58px;
+    border-radius:50%; border:none; cursor:pointer;
+    font-size:1.6rem;
+    background:rgba(255,255,255,.08);
+    color:white;
+    transition:all .2s; display:flex; align-items:center; justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .govor-nav-btn:hover { background:rgba(255,255,255,.15); transform:scale(1.1); }
+  .govor-nav-btn:disabled { opacity:.2; cursor:default; transform:none; }
+  .govor-counter {
+    font-family:'Fredoka One',cursive;
+    font-size:1.3rem; color:rgba(255,255,255,.5);
+    min-width:60px; text-align:center;
+  }
+
+  /* Category badge */
+  .govor-category {
+    font-size:.8rem; letter-spacing:2px; text-transform:uppercase;
+    color:rgba(255,255,255,.35); font-weight:700;
+    font-family:'Nunito',sans-serif;
+    margin-top:4px;
+  }
+
+  /* Recording feedback */
+  .govor-mic-pulse {
+    width:70px; height:70px; border-radius:50%;
+    background:linear-gradient(135deg,#EC4899,#A855F7);
+    display:flex; align-items:center; justify-content:center;
+    font-size:2rem;
+    animation:micPulse .6s ease-in-out infinite alternate;
+    box-shadow:0 0 0 0 rgba(236,72,153,.5);
+  }
+  @keyframes micPulse{
+    0%{transform:scale(1);box-shadow:0 0 0 0 rgba(236,72,153,.5);}
+    100%{transform:scale(1.1);box-shadow:0 0 0 16px rgba(236,72,153,0);}
+  }
+
+  .govor-listen-anim {
+    display:flex; gap:4px; align-items:flex-end; height:40px;
+  }
+  .govor-bar {
+    width:8px; border-radius:4px;
+    background:linear-gradient(to top,#3B82F6,#06B6D4);
+    animation:soundBar .5s ease-in-out infinite alternate;
+  }
+  .govor-bar:nth-child(1){height:20px;animation-delay:0s;}
+  .govor-bar:nth-child(2){height:35px;animation-delay:.1s;}
+  .govor-bar:nth-child(3){height:28px;animation-delay:.2s;}
+  .govor-bar:nth-child(4){height:38px;animation-delay:.3s;}
+  .govor-bar:nth-child(5){height:22px;animation-delay:.4s;}
+  @keyframes soundBar{0%{transform:scaleY(.3)}100%{transform:scaleY(1)}}
+
+  /* Stars completion */
+  .govor-complete {
+    text-align:center; padding:20px;
+    animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
+  }
+
   /* CONFETTI */
   .cf { position:fixed; width:11px; height:11px; animation:cfFall linear forwards; z-index:200; pointer-events:none; }
   @keyframes cfFall{ 0%{transform:translateY(-20px) rotate(0);opacity:1} 100%{transform:translateY(106vh) rotate(720deg);opacity:0} }
@@ -412,6 +636,18 @@
       <div class="card-title" style="background:linear-gradient(135deg,#06B6D4,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Puzzle</div>
       <div class="card-desc">Složi komade slike na pravo mjesto!</div>
       <div class="card-dots" id="dots-puzli"></div>
+    </div>
+    <div class="game-card gc-umetaljka" onclick="selectGame('umetaljka')">
+      <span class="card-emoji">🏠</span>
+      <div class="card-title" style="background:linear-gradient(135deg,#10B981,#FBBF24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Umetaljka</div>
+      <div class="card-desc">Ubaci broj, slovo ili oblik u pravu rupu!</div>
+      <div class="card-dots" id="dots-umetaljka"></div>
+    </div>
+    <div class="game-card gc-govor" onclick="selectGame('govor')">
+      <span class="card-emoji">🗣️</span>
+      <div class="card-title" style="background:linear-gradient(135deg,#EC4899,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Govorimo!</div>
+      <div class="card-desc">Nauči prve riječi — čuj i ponovi!</div>
+      <div class="card-dots" id="dots-govor"></div>
     </div>
   </div>
 </div>
@@ -489,6 +725,57 @@
     </div>
     <div class="puz-board" id="puz-board"></div>
     <div class="puz-tray" id="puz-tray"></div>
+  </div>
+</div>
+
+<!-- UMETALJKA -->
+<div class="screen" id="screen-umetaljka">
+  <div class="game-top">
+    <button class="back-btn" onclick="goLevels()" style="padding:8px 16px;font-size:.9rem;position:relative;z-index:11;">← Natrag</button>
+    <div class="prog-wrap"><div class="prog-bar" id="umet-prog-bar"></div></div>
+    <div style="position:relative;z-index:11;">
+      <div class="score-badge">🏠 <span id="umet-level-lbl">Level 1</span></div>
+    </div>
+  </div>
+  <div class="umet-task-label" id="umet-task-label">Ubaci broj!</div>
+  <div style="position:relative;display:inline-block;line-height:0;">
+    <canvas id="umet-scene-canvas" width="600" height="480"></canvas>
+    <div id="umet-slots-layer" style="position:absolute;top:0;left:0;pointer-events:none;"></div>
+  </div>
+  <div class="umet-tray" id="umet-tray"></div>
+</div>
+
+<!-- GOVORIMO -->
+<div class="screen" id="screen-govor">
+  <div class="game-top">
+    <button class="back-btn" onclick="goLevels()">← Natrag</button>
+    <div class="prog-wrap"><div class="prog-bar" id="govor-prog-bar"></div></div>
+    <div class="score-badge">🗣️ <span id="govor-lvl-lbl">1/20</span></div>
+  </div>
+  <div class="govor-screen">
+    <div class="govor-card" id="govor-card">
+      <div class="govor-category" id="govor-category">Životinje</div>
+      <div class="govor-emoji" id="govor-emoji" onclick="govorListen()">🐶</div>
+      <div class="govor-word" id="govor-word">PAS</div>
+      <div class="govor-syllables" id="govor-syllables">P · A · S</div>
+    </div>
+
+    <div class="govor-btns">
+      <button class="govor-btn govor-btn-listen" onclick="govorListen()" id="govor-listen-btn">
+        <span class="govor-btn-icon">🔊</span>
+        Slušaj
+      </button>
+      <button class="govor-btn govor-btn-speak" onclick="govorSpeak()">
+        <span class="govor-btn-icon">🎤</span>
+        Ponovi!
+      </button>
+    </div>
+
+    <div class="govor-nav">
+      <button class="govor-nav-btn" id="govor-prev" onclick="govorNav(-1)">←</button>
+      <div class="govor-counter" id="govor-counter">1 / 20</div>
+      <button class="govor-nav-btn" id="govor-next" onclick="govorNav(1)">→</button>
+    </div>
   </div>
 </div>
 
@@ -631,7 +918,7 @@ const NUMBERS = [
 // ================================================================
 let G='', LVL=1, ROUND=0, TOTAL=0, SCORE=0;
 let roundItems=[], correctSet=new Set(), selectedOk=new Set(), wrongCount=0, done=false;
-let completed={boje:new Set(),slova:new Set(),broji:new Set(),memorij:new Set(),puzli:new Set()};
+let completed={boje:new Set(),slova:new Set(),broji:new Set(),memorij:new Set(),puzli:new Set(),umetaljka:new Set(),govor:new Set()};
 let colorName='', currentN=0;
 const ss=window.speechSynthesis;
 
@@ -748,10 +1035,11 @@ function speakColor(){
 // DOTS
 // ================================================================
 function initDots(){
-  ['boje','slova','broji','memorij','puzli'].forEach(g=>{
+  ['boje','slova','broji','memorij','puzli','umetaljka','govor'].forEach(g=>{
     const c=document.getElementById('dots-'+g); if(!c) return;
     c.innerHTML='';
-    for(let i=1;i<=10;i++){
+    const maxLvl=(G==='govor')?20:10;
+  for(let i=1;i<=maxLvl;i++){
       const d=document.createElement('div');
       d.className='dot'+(completed[g].has(i)?' done':'');
       c.appendChild(d);
@@ -768,18 +1056,19 @@ function selectGame(g){ G=g; showLevelSelect(); }
 function goLevels(){ ss&&ss.cancel(); clearInterval(memTimerInterval); puzDragPiece=null; puzDragEl=null; showLevelSelect(); }
 
 function showLevelSelect(){
-  const t={boje:'🎨 Boje',slova:'🔤 Slova',broji:'🔢 Brojevi',memorij:'🧠 Memorij',puzli:'🧩 Puzzle'};
+  const t={boje:'🎨 Boje',slova:'🔤 Slova',broji:'🔢 Brojevi',memorij:'🧠 Memorij',puzli:'🧩 Puzzle',umetaljka:'🏠 Umetaljka',govor:'🗣️ Govorimo'};
   document.getElementById('lvl-title').textContent=t[G]+' — Odaberi Level';
   const grid=document.getElementById('level-grid'); grid.innerHTML='';
   const pal=['#FF6B9D','#F97316','#FBBF24','#10B981','#06B6D4','#3B82F6','#A855F7','#EC4899','#84CC16','#78350F'];
-  for(let i=1;i<=10;i++){
+  const maxLvl=(G==='govor')?20:10;
+  for(let i=1;i<=maxLvl;i++){
     const unlocked=i===1||completed[G].has(i-1);
     const dn=completed[G].has(i);
     const btn=document.createElement('button');
     btn.className='lvl-btn'+(dn?' done':'')+(unlocked?'':' locked');
     if(unlocked) btn.style.cssText=`background:linear-gradient(135deg,${pal[i-1]}22,var(--card));border-color:${pal[i-1]}55;`;
     btn.innerHTML=`<span style="font-size:1.5rem;${!unlocked?'filter:grayscale(1)':''}">${unlocked?(dn?'⭐':'🎮'):'🔒'}</span><span>${i}</span><span class="lvl-num">LEVEL</span>`;
-    if(unlocked) btn.onclick=()=>{ if(G==='memorij') startMemory(i); else if(G==='puzli') startPuzzle(i); else startGame(i); };
+    if(unlocked) btn.onclick=()=>{ if(G==='memorij') startMemory(i); else if(G==='puzli') startPuzzle(i); else if(G==='umetaljka') startUmetaljka(i); else if(G==='govor') startGovor(i); else startGame(i); };
     grid.appendChild(btn);
   }
   showScreen('screen-levels');
@@ -950,8 +1239,8 @@ function endLevel(){
   }
   if(stars>=2) setTimeout(()=>speak('Bravo!'),900);
 }
-function retryLevel(){ playClick(); document.getElementById('result-overlay').classList.remove('show'); if(G==='memorij') startMemory(LVL); else if(G==='puzli') startPuzzle(LVL); else startGame(LVL); }
-function nextLevel(){ playClick(); document.getElementById('result-overlay').classList.remove('show'); if(G==='memorij'){ if(LVL<10) startMemory(LVL+1); else goLevels(); } else if(G==='puzli'){ if(LVL<10) startPuzzle(LVL+1); else goLevels(); } else { if(LVL<10) startGame(LVL+1); else goLevels(); } }
+function retryLevel(){ playClick(); document.getElementById('result-overlay').classList.remove('show'); if(G==='memorij') startMemory(LVL); else if(G==='puzli') startPuzzle(LVL); else if(G==='umetaljka') startUmetaljka(LVL); else if(G==='govor') startGovor(LVL); else startGame(LVL); }
+function nextLevel(){ playClick(); document.getElementById('result-overlay').classList.remove('show'); if(G==='memorij'){ if(LVL<10) startMemory(LVL+1); else goLevels(); } else if(G==='puzli'){ if(LVL<10) startPuzzle(LVL+1); else goLevels(); } else if(G==='umetaljka'){ if(LVL<10) startUmetaljka(LVL+1); else goLevels(); } else if(G==='govor'){ if(LVL<20) startGovor(LVL+1); else goLevels(); } else { if(LVL<10) startGame(LVL+1); else goLevels(); } }
 
 // ================================================================
 // CONFETTI
@@ -1729,6 +2018,726 @@ function drawRocket(ctx, w, h){
   ctx.fillStyle='#EF5350';
   ctx.beginPath(); ctx.moveTo(w*0.38,h*0.7); ctx.lineTo(w*0.2,h*0.82); ctx.lineTo(w*0.38,h*0.8); ctx.fill();
   ctx.beginPath(); ctx.moveTo(w*0.62,h*0.7); ctx.lineTo(w*0.8,h*0.82); ctx.lineTo(w*0.62,h*0.8); ctx.fill();
+}
+
+
+// ================================================================
+// UMETALJKA — sorter igra, vuci broj/slovo/oblik u siluetu
+// Svaki level = jedna lijepa scena + siluete lebde u sceni
+// ================================================================
+
+// Level config: scene background + shapes/numbers to match
+const UMET_LEVELS = [
+  { scene:'zima',   items:[{key:'1',type:'broj'}] },
+  { scene:'more',   items:[{key:'2',type:'broj'},{key:'3',type:'broj'}] },
+  { scene:'svemirx',items:[{key:'4',type:'broj'},{key:'5',type:'broj'}] },
+  { scene:'sume',   items:[{key:'A',type:'slovo'}] },
+  { scene:'grad',   items:[{key:'B',type:'slovo'},{key:'C',type:'slovo'}] },
+  { scene:'zima',   items:[{key:'6',type:'broj'},{key:'7',type:'broj'}] },
+  { scene:'more',   items:[{key:'■',type:'oblik'},{key:'▲',type:'oblik'}] },
+  { scene:'svemirx',items:[{key:'●',type:'oblik'},{key:'■',type:'oblik'},{key:'▲',type:'oblik'}] },
+  { scene:'sume',   items:[{key:'8',type:'broj'},{key:'9',type:'broj'}] },
+  { scene:'grad',   items:[{key:'●',type:'oblik'},{key:'A',type:'slovo'},{key:'5',type:'broj'}] },
+];
+
+// Wrong decoys pool
+const UMET_DECOYS = {
+  broj:  ['1','2','3','4','5','6','7','8','9'],
+  slovo: ['A','B','C','D','G','J','K','L'],
+  oblik: ['●','■','▲'],
+};
+
+// Colors for each key
+const UMET_KEY_COLOR = {
+  '1':'#FF6B9D','2':'#3B82F6','3':'#F97316','4':'#10B981','5':'#A855F7',
+  '6':'#FBBF24','7':'#EC4899','8':'#06B6D4','9':'#84CC16',
+  'A':'#FF6B9D','B':'#F97316','C':'#FBBF24','D':'#10B981','G':'#3B82F6','J':'#A855F7',
+  '●':'#FF6B9D','■':'#3B82F6','▲':'#FBBF24',
+};
+function umetCol(k){ return UMET_KEY_COLOR[k]||'#A855F7'; }
+
+// Slot positions per scene + item count
+// Returns [{x,y,w,h}] — positions in 600×480 canvas space
+function getUmetSlotPositions(scene, n){
+  const base = {
+    zima:   [{x:220,y:120},{x:370,y:100},{x:160,y:180}],
+    more:   [{x:200,y:110},{x:380,y:130},{x:290,y:80}],
+    svemirx:[{x:230,y:95}, {x:380,y:110},{x:160,y:155}],
+    sume:   [{x:280,y:100},{x:150,y:130},{x:410,y:120}],
+    grad:   [{x:200,y:105},{x:360,y:95}, {x:290,y:160}],
+  };
+  return (base[scene]||base.zima).slice(0,n);
+}
+
+let umetCtx=null, umetCanvas=null;
+let umetSlots=[];     // [{key,x,y,w,h,filled,el}]
+let umetPlaced2=0, umetDragKey=null, umetDragEl=null;
+const UMET_SW=85, UMET_SH=95; // slot width/height
+
+function startUmetaljka(lvl){
+  LVL=lvl;
+  umetPlaced2=0; umetDragKey=null; umetDragEl=null; umetSlots=[];
+
+  const cfg=UMET_LEVELS[lvl-1];
+  document.getElementById('umet-level-lbl').textContent=`Level ${lvl}`;
+  document.getElementById('umet-prog-bar').style.width='0%';
+
+  const keyNames=cfg.items.map(i=>i.key).join(', ');
+  document.getElementById('umet-task-label').textContent=`Ubaci: ${keyNames}`;
+
+  umetCanvas=document.getElementById('umet-scene-canvas');
+  umetCtx=umetCanvas.getContext('2d');
+
+  // Canvas: full width, height proportional (600x480 ratio), capped so tray fits
+  const actualW = Math.min(window.innerWidth, 700);
+  const actualH = Math.min(Math.round(actualW * 480/600), window.innerHeight - 200);
+  umetCanvas.width  = 600;
+  umetCanvas.height = 480;
+  umetCanvas.style.width  = actualW + 'px';
+  umetCanvas.style.height = actualH + 'px';
+
+  drawUmetBg(cfg.scene, actualW, actualH);
+
+  // Build slots layer
+  const layer=document.getElementById('umet-slots-layer');
+  layer.innerHTML='';
+  layer.style.cssText=`position:absolute;top:0;left:0;
+    width:${actualW}px;height:${actualH}px;pointer-events:none;z-index:5;`;
+
+  const positions=getUmetSlotPositions(cfg.scene, cfg.items.length);
+  const scaleX=actualW/600, scaleY=actualH/480;
+
+  cfg.items.forEach((item,i)=>{
+    const pos=positions[i];
+    const sx=pos.x*scaleX, sy=pos.y*scaleY;
+    const sw=UMET_SW*scaleX, sh=UMET_SH*scaleY;
+    const col=umetCol(item.key);
+
+    // Draw silhouette on canvas
+    drawUmetSilhouette(pos.x, pos.y, UMET_SW, UMET_SH, item.key, col, false);
+
+    // Invisible drop div (pointer-events on)
+    const div=document.createElement('div');
+    div.dataset.key=item.key;
+    div.className='umet-slot';
+    div.style.cssText=`position:absolute;left:${sx-sw/2}px;top:${sy-sh/2}px;
+      width:${sw}px;height:${sh}px;pointer-events:all;border-radius:16px;cursor:default;`;
+    setupUmetSlot(div);
+    layer.appendChild(div);
+
+    umetSlots.push({key:item.key,x:pos.x,y:pos.y,el:div,filled:false,col,
+      cx:pos.x, cy:pos.y, sw:UMET_SW, sh:UMET_SH, scaleX, scaleY});
+  });
+
+  buildUmetPieces2(cfg);
+  showScreen('screen-umetaljka');
+}
+
+// Draw beautiful scene backgrounds on canvas
+function drawUmetBg(scene, W=600, H=480){
+  const ctx=umetCtx;
+  ctx.clearRect(0,0,W,H);
+
+  if(scene==='zima'){
+    // Sky gradient
+    const sky=ctx.createLinearGradient(0,0,0,H*0.65);
+    sky.addColorStop(0,'#1de9b6'); sky.addColorStop(1,'#4fc3f7');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.65);
+    // Mountains back
+    ctx.fillStyle='#b0bec5';
+    ctx.beginPath(); ctx.moveTo(0,300); ctx.lineTo(120,150); ctx.lineTo(240,300); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(200,300); ctx.lineTo(360,120); ctx.lineTo(520,300); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(400,300); ctx.lineTo(550,170); ctx.lineTo(700,300); ctx.fill();
+    // Snow on mountains
+    ctx.fillStyle='white';
+    ctx.beginPath(); ctx.moveTo(120,150); ctx.lineTo(95,210); ctx.lineTo(145,210); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(360,120); ctx.lineTo(325,195); ctx.lineTo(395,195); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(550,170); ctx.lineTo(520,230); ctx.lineTo(580,230); ctx.fill();
+    // Snow ground
+    const snow=ctx.createLinearGradient(0,300,0,H);
+    snow.addColorStop(0,'#e3f2fd'); snow.addColorStop(1,'#bbdefb');
+    ctx.fillStyle=snow; ctx.fillRect(0,300,W,H);
+    // Snow hill
+    ctx.fillStyle='#e8f5e9';
+    ctx.beginPath(); ctx.arc(160,420,240,Math.PI,0); ctx.fill();
+    // Trees
+    [[60,330],[100,310],[140,340],[460,315],[500,335],[540,310]].forEach(([x,y])=>{
+      ctx.fillStyle='#2e7d32';
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-22,y+55); ctx.lineTo(x+22,y+55); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x,y+20); ctx.lineTo(x-28,y+70); ctx.lineTo(x+28,y+70); ctx.fill();
+      ctx.fillStyle='#795548'; ctx.fillRect(x-7,y+68,14,22);
+    });
+    // Snowflakes
+    ctx.fillStyle='white';
+    for(let i=0;i<35;i++){
+      const sx=((i*173)%W), sy=((i*97)%H);
+      ctx.beginPath(); ctx.arc(sx,sy,i%4+1.5,0,Math.PI*2); ctx.fill();
+    }
+    // Sun
+    ctx.fillStyle='#FFD700';
+    ctx.beginPath(); ctx.arc(545,45,34,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#FFD700'; ctx.lineWidth=3;
+    for(let i=0;i<8;i++){
+      const a=i/8*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(545+42*Math.cos(a),45+42*Math.sin(a));
+      ctx.lineTo(545+54*Math.cos(a),45+54*Math.sin(a)); ctx.stroke();
+    }
+
+  } else if(scene==='more'){
+    // Sky
+    const sky=ctx.createLinearGradient(0,0,0,H*0.5);
+    sky.addColorStop(0,'#0288d1'); sky.addColorStop(1,'#4fc3f7');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.5);
+    // Clouds
+    [[80,55,50],[200,35,40],[380,60,45],[500,42,38]].forEach(([cx,cy,r])=>{
+      ctx.fillStyle='white';
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx-r*0.6,cy+r*0.2,r*0.7,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx+r*0.6,cy+r*0.2,r*0.7,0,Math.PI*2); ctx.fill();
+    });
+    // Sun
+    ctx.fillStyle='#FFD700';
+    ctx.beginPath(); ctx.arc(550,50,32,0,Math.PI*2); ctx.fill();
+    // Water
+    const sea=ctx.createLinearGradient(0,H*0.5,0,H);
+    sea.addColorStop(0,'#0277bd'); sea.addColorStop(1,'#01579b');
+    ctx.fillStyle=sea; ctx.fillRect(0,H*0.5,W,H*0.5);
+    // Waves
+    ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3;
+    for(let wy=0;wy<4;wy++){
+      ctx.beginPath();
+      for(let wx=0;wx<=W;wx+=30){
+        ctx.lineTo(wx, H*0.5+wy*55+20*Math.sin(wx/40+wy));
+      }
+      ctx.stroke();
+    }
+    // Boat
+    ctx.fillStyle='#e53935';
+    ctx.beginPath(); ctx.moveTo(180,245); ctx.lineTo(160,295); ctx.lineTo(360,295); ctx.lineTo(340,245); ctx.fill();
+    ctx.fillStyle='#fff9c4'; ctx.fillRect(200,195,140,52);
+    ctx.fillStyle='#795548'; ctx.fillRect(264,130,8,68);
+    ctx.fillStyle='#ff5722';
+    ctx.beginPath(); ctx.moveTo(272,135); ctx.lineTo(310,155); ctx.lineTo(272,175); ctx.fill();
+    // Fish visible through water
+    ctx.fillStyle='rgba(255,152,0,.6)';
+    ctx.beginPath(); ctx.ellipse(120,390,35,18,0.3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(255,152,0,.6)';
+    ctx.beginPath(); ctx.moveTo(85,390); ctx.lineTo(65,375); ctx.lineTo(65,405); ctx.fill();
+
+  } else if(scene==='svemirx'){
+    // Deep space
+    ctx.fillStyle='#080420'; ctx.fillRect(0,0,W,H);
+    // Stars
+    for(let i=0;i<120;i++){
+      const sx=((i*179+31)%W), sy=((i*113+17)%H);
+      const sr=i%8===0?2:i%4===0?1.5:0.8;
+      ctx.fillStyle=`rgba(255,255,255,${0.4+i%3*0.2})`;
+      ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill();
+    }
+    // Nebula glow
+    const neb=ctx.createRadialGradient(480,360,20,480,360,160);
+    neb.addColorStop(0,'rgba(168,85,247,.18)'); neb.addColorStop(1,'transparent');
+    ctx.fillStyle=neb; ctx.fillRect(0,0,W,H);
+    // Planet 1
+    ctx.fillStyle='#7986cb';
+    ctx.beginPath(); ctx.arc(490,85,55,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#9fa8da'; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.ellipse(490,85,80,20,0.2,0,Math.PI*2); ctx.stroke();
+    // Planet 2 small
+    ctx.fillStyle='#ef9a9a';
+    ctx.beginPath(); ctx.arc(100,380,32,0,Math.PI*2); ctx.fill();
+    // Rocket
+    ctx.fillStyle='#eceff1'; ctx.beginPath();
+    rrect(ctx,65,200,60,130,10); ctx.fill();
+    ctx.fillStyle='#ef5350';
+    ctx.beginPath(); ctx.moveTo(65,205); ctx.lineTo(95,140); ctx.lineTo(125,205); ctx.fill();
+    ctx.fillStyle='#ef5350';
+    ctx.beginPath(); ctx.moveTo(65,285); ctx.lineTo(45,325); ctx.lineTo(65,315); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(125,285); ctx.lineTo(145,325); ctx.lineTo(125,315); ctx.fill();
+    ctx.fillStyle='#81d4fa'; ctx.beginPath(); ctx.arc(95,240,18,0,Math.PI*2); ctx.fill();
+    // Flame
+    const fl=ctx.createRadialGradient(95,335,2,95,335,28);
+    fl.addColorStop(0,'#FFD600'); fl.addColorStop(0.6,'#FF6D00'); fl.addColorStop(1,'transparent');
+    ctx.fillStyle=fl; ctx.beginPath(); ctx.arc(95,335,28,0,Math.PI*2); ctx.fill();
+
+  } else if(scene==='sume'){
+    // Forest scene
+    const sky=ctx.createLinearGradient(0,0,0,H*0.55);
+    sky.addColorStop(0,'#1b5e20'); sky.addColorStop(1,'#4caf50');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.55);
+    // Sun rays
+    ctx.fillStyle='rgba(255,220,0,.15)';
+    for(let i=0;i<12;i++){
+      const a=i/12*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(300,0);
+      ctx.lineTo(300+300*Math.cos(a-0.15),300*Math.sin(a));
+      ctx.lineTo(300+300*Math.cos(a+0.15),300*Math.sin(a));
+      ctx.fill();
+    }
+    ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.arc(300,0,40,0,Math.PI*2); ctx.fill();
+    // Ground
+    ctx.fillStyle='#33691e'; ctx.fillRect(0,H*0.55,W,H*0.45);
+    // Grass details
+    ctx.fillStyle='#558b2f';
+    for(let gx=0;gx<W;gx+=20){
+      ctx.fillRect(gx,H*0.55-8,10,16);
+    }
+    // Big trees
+    [[80,50,280],[200,45,260],[420,55,265],[540,48,270]].forEach(([x,r,y])=>{
+      ctx.fillStyle='#1b5e20';
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#2e7d32';
+      ctx.beginPath(); ctx.arc(x-r*0.2,y-r*0.2,r*0.85,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#5d4037'; ctx.fillRect(x-10,y+r-10,20,60);
+    });
+    // Flowers
+    [[150,300],[300,310],[450,295]].forEach(([fx,fy])=>{
+      ['#FF6B9D','#FFD700','#FF5722'].forEach((c,ci)=>{
+        ctx.fillStyle=c;
+        ctx.beginPath(); ctx.arc(fx+ci*15,fy,8,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#FFD700';
+        ctx.beginPath(); ctx.arc(fx+ci*15,fy,3,0,Math.PI*2); ctx.fill();
+      });
+    });
+
+  } else { // grad
+    const sky=ctx.createLinearGradient(0,0,0,H*0.6);
+    sky.addColorStop(0,'#ff6f00'); sky.addColorStop(0.5,'#ff8f00'); sky.addColorStop(1,'#ffca28');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.6);
+    // Sun setting
+    ctx.fillStyle='#FFD700';
+    ctx.beginPath(); ctx.arc(300,H*0.6,55,Math.PI,0); ctx.fill();
+    // Buildings silhouette
+    const buildings=[[0,200,90,280],[90,240,70,240],[160,170,100,310],[260,220,80,260],
+                     [340,185,90,295],[430,240,70,240],[500,200,100,280]];
+    ctx.fillStyle='#1a237e';
+    buildings.forEach(([x,y,w,h])=>{
+      ctx.fillRect(x,y,w,h);
+      // Windows
+      ctx.fillStyle='#ffca28';
+      for(let wy=y+15;wy<y+h-20;wy+=25){
+        for(let wx=x+10;wx<x+w-10;wx+=18){
+          if(Math.random()>0.3) ctx.fillRect(wx,wy,10,12);
+        }
+      }
+      ctx.fillStyle='#1a237e';
+    });
+    // Road
+    ctx.fillStyle='#37474f'; ctx.fillRect(0,H*0.78,W,H*0.22);
+    ctx.fillStyle='#ffca28';
+    for(let rx=0;rx<W;rx+=50) ctx.fillRect(rx,H*0.88,30,8);
+    // Street lights
+    [[100,390],[250,390],[400,390],[550,390]].forEach(([lx,ly])=>{
+      ctx.strokeStyle='#607d8b'; ctx.lineWidth=4;
+      ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(lx,ly-80); ctx.lineTo(lx+20,ly-80); ctx.stroke();
+      ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.arc(lx+20,ly-80,8,0,Math.PI*2); ctx.fill();
+    });
+  }
+}
+
+function drawUmetSilhouette(cx, cy, sw, sh, key, col, filled){
+  const ctx=umetCtx;
+  ctx.save();
+
+  if(filled){
+    // Filled — bright piece dropped in
+    const grad=ctx.createRadialGradient(cx,cy,4,cx,cy,sw*0.6);
+    grad.addColorStop(0,col); grad.addColorStop(1,col+'99');
+    ctx.fillStyle=grad;
+    ctx.shadowColor=col; ctx.shadowBlur=20;
+  } else {
+    // Empty — dark hole with glowing outline
+    ctx.fillStyle='rgba(0,0,0,.55)';
+    ctx.shadowColor=col; ctx.shadowBlur=16;
+  }
+
+  const x=cx-sw/2, y=cy-sh/2;
+
+  // Draw shape based on key type
+  if(key==='●'){
+    ctx.beginPath(); ctx.arc(cx,cy,Math.min(sw,sh)*0.48,0,Math.PI*2);
+    ctx.fill();
+    if(!filled){
+      ctx.strokeStyle=col; ctx.lineWidth=4;
+      ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  } else if(key==='▲'){
+    ctx.beginPath();
+    ctx.moveTo(cx, y+8); ctx.lineTo(x+8, y+sh-8); ctx.lineTo(x+sw-8, y+sh-8); ctx.closePath();
+    ctx.fill();
+    if(!filled){
+      ctx.strokeStyle=col; ctx.lineWidth=4; ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  } else if(key==='■'){
+    const r=14;
+    rrect(ctx, x+8, y+8, sw-16, sh-16, r); ctx.fill();
+    if(!filled){
+      ctx.strokeStyle=col; ctx.lineWidth=4; ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  } else {
+    // Number or letter — rounded rect background + text
+    rrect(ctx, x+4, y+4, sw-8, sh-8, 14); ctx.fill();
+    if(!filled){
+      ctx.strokeStyle=col; ctx.lineWidth=4; ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
+      // Ghost number
+      ctx.fillStyle=col+'55';
+      ctx.font=`bold ${Math.round(sh*0.55)}px 'Fredoka One', cursive`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(key, cx, cy+2);
+    } else {
+      ctx.fillStyle='white';
+      ctx.shadowColor='rgba(0,0,0,.4)'; ctx.shadowBlur=8;
+      ctx.font=`bold ${Math.round(sh*0.55)}px 'Fredoka One', cursive`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(key, cx, cy+2);
+    }
+  }
+
+  ctx.restore();
+}
+
+function buildUmetPieces2(cfg){
+  const tray=document.getElementById('umet-tray');
+  tray.innerHTML='';
+
+  // Collect all keys needed
+  const needed=cfg.items.map(i=>i.key);
+  // Build decoy pool — wrong items same type
+  const decoys=[];
+  cfg.items.forEach(item=>{
+    const pool=UMET_DECOYS[item.type].filter(k=>!needed.includes(k));
+    decoys.push(...pool.sort(()=>Math.random()-.5).slice(0,1));
+  });
+
+  const all=[...needed,...decoys].sort(()=>Math.random()-.5);
+  const PIECE_SIZE=72;
+
+  all.forEach(key=>{
+    const col=umetCol(key);
+    const cv=document.createElement('canvas');
+    cv.width=PIECE_SIZE; cv.height=PIECE_SIZE;
+    cv.className='umet-piece';
+    cv.dataset.key=key;
+    cv.style.width=PIECE_SIZE+'px'; cv.style.height=PIECE_SIZE+'px';
+    cv.style.background=`linear-gradient(135deg,${col}dd,${col}88)`;
+
+    // Draw piece content on canvas
+    const pctx=cv.getContext('2d');
+    pctx.fillStyle='white';
+    if(key==='●'){
+      pctx.beginPath(); pctx.arc(36,36,26,0,Math.PI*2); pctx.fill();
+    } else if(key==='▲'){
+      pctx.beginPath(); pctx.moveTo(36,8); pctx.lineTo(8,62); pctx.lineTo(64,62); pctx.closePath(); pctx.fill();
+    } else if(key==='■'){
+      rrect(pctx,10,10,52,52,10); pctx.fill();
+    } else {
+      pctx.shadowColor='rgba(0,0,0,.3)'; pctx.shadowBlur=6;
+      pctx.font='bold 38px "Fredoka One",cursive';
+      pctx.textAlign='center'; pctx.textBaseline='middle';
+      pctx.fillText(key,36,38);
+    }
+
+    setupUmetPiece(cv);
+    tray.appendChild(cv);
+  });
+}
+
+function setupUmetPiece(el){
+  el.draggable=true;
+  el.addEventListener('dragstart', e=>{
+    umetDragKey=el.dataset.key; umetDragEl=el;
+    el.classList.add('dragging-piece');
+    e.dataTransfer.setData('text/plain',el.dataset.key);
+  });
+  el.addEventListener('dragend',()=>el.classList.remove('dragging-piece'));
+
+  let ghost=null;
+  el.addEventListener('touchstart', e=>{
+    umetDragKey=el.dataset.key; umetDragEl=el;
+    const t=e.touches[0];
+    ghost=el.cloneNode(true);
+    const sz=+el.style.width.replace('px','')||72;
+    ghost.style.cssText=`position:fixed;width:${sz}px;height:${sz}px;opacity:.9;pointer-events:none;z-index:999;
+      border-radius:16px;left:${t.clientX-sz/2}px;top:${t.clientY-sz/2}px;
+      box-shadow:0 12px 32px rgba(0,0,0,.5);animation:none;`;
+    document.body.appendChild(ghost);
+    el.style.opacity='.25';
+  },{passive:true});
+  el.addEventListener('touchmove', e=>{
+    if(!ghost) return;
+    const t=e.touches[0], sz=+ghost.style.width.replace('px','')||72;
+    ghost.style.left=(t.clientX-sz/2)+'px'; ghost.style.top=(t.clientY-sz/2)+'px';
+    e.preventDefault();
+  },{passive:false});
+  el.addEventListener('touchend', e=>{
+    if(ghost){ghost.remove();ghost=null;} el.style.opacity='';
+    const t=e.changedTouches[0];
+    const hit=document.elementFromPoint(t.clientX,t.clientY);
+    const slot=hit&&hit.closest('.umet-slot');
+    if(slot) dropOnUmetSlot(slot);
+    else{umetDragKey=null;umetDragEl=null;}
+  });
+}
+
+function setupUmetSlot(slot){
+  slot.addEventListener('dragover', e=>{
+    e.preventDefault();
+    if(!slot.dataset.filled) slot.classList.add('slot-over-glow');
+  });
+  slot.addEventListener('dragleave',()=>slot.classList.remove('slot-over-glow'));
+  slot.addEventListener('drop', e=>{
+    e.preventDefault(); slot.classList.remove('slot-over-glow');
+    dropOnUmetSlot(slot);
+  });
+}
+
+function dropOnUmetSlot(slot){
+  if(!umetDragKey||!umetDragEl) return;
+  if(slot.dataset.filled) return;
+
+  if(umetDragKey===slot.dataset.key){
+    // CORRECT — find slot info and draw filled silhouette
+    const slotInfo=umetSlots.find(s=>s.key===slot.dataset.key&&!s.filled);
+    if(slotInfo){
+      slotInfo.filled=true;
+      slot.dataset.filled='1';
+      // Redraw bg to clean up
+      drawUmetBg(UMET_LEVELS[LVL-1].scene, umetCanvas.width, umetCanvas.height);
+      // Redraw all silhouettes
+      umetSlots.forEach(s=>{
+        drawUmetSilhouette(s.cx,s.cy,s.sw,s.sh,s.key,s.col,s.filled);
+      });
+    }
+    umetDragEl.remove();
+    playCorrect();
+    umetPlaced2++;
+    document.getElementById('umet-prog-bar').style.width=(umetPlaced2/UMET_LEVELS[LVL-1].items.length*100)+'%';
+    document.getElementById('umet-task-label').textContent=
+      umetPlaced2<UMET_LEVELS[LVL-1].items.length ? '🎯 Još malo!' : '🎉 Bravo!';
+
+    if(umetPlaced2>=UMET_LEVELS[LVL-1].items.length) setTimeout(umetDone,700);
+  } else {
+    playWrong();
+    // Shake animation on slot
+    const s=umetSlots.find(ss=>ss.key===slot.dataset.key);
+    if(s){
+      let t=0;
+      const shake=setInterval(()=>{
+        const off=t%2===0?6:-6;
+        // Brief redraw offset — just flash the slot glow red
+        slot.style.outline=`3px solid #EF5350`;
+        t++;
+        if(t>4){clearInterval(shake);slot.style.outline='';}
+      },80);
+    }
+  }
+  umetDragKey=null; umetDragEl=null;
+}
+
+function umetDone(){
+  completed['umetaljka'].add(LVL);
+  confetti(); setTimeout(playWin,200); setTimeout(()=>speak('Bravo!'),600);
+  setTimeout(()=>{
+    document.getElementById('res-emoji').textContent='🎯';
+    document.getElementById('res-title').textContent='Sve si složio!';
+    document.getElementById('res-sub').textContent=`Level ${LVL} završen!`;
+    document.getElementById('res-stars').innerHTML='⭐⭐⭐';
+    document.getElementById('next-lvl-btn').style.display=LVL<10?'':'none';
+    document.getElementById('result-overlay').classList.add('show');
+  },1300);
+}
+
+
+// ================================================================
+// GOVORIMO — učenje prvih riječi za djecu 2-3 godine
+// 20 levela, svaki = jedna nova riječ s velikom slikom
+// ================================================================
+
+const GOVOR_RIJECI = [
+  // Životinje
+  { e:'🐶', r:'PAS',     s:'P · A · S',     kat:'Životinje',  boja:'#FF6B9D' },
+  { e:'🐱', r:'MAČKA',   s:'MAČ · KA',       kat:'Životinje',  boja:'#F97316' },
+  { e:'🐄', r:'KRAVA',   s:'KRA · VA',       kat:'Životinje',  boja:'#FBBF24' },
+  { e:'🐸', r:'ŽABA',    s:'ŽA · BA',        kat:'Životinje',  boja:'#10B981' },
+  { e:'🦁', r:'LAV',     s:'L · A · V',      kat:'Životinje',  boja:'#F97316' },
+  { e:'🐘', r:'SLON',    s:'S · LON',        kat:'Životinje',  boja:'#6B7280' },
+  { e:'🐧', r:'PINGVIN', s:'PING · VIN',     kat:'Životinje',  boja:'#3B82F6' },
+  { e:'🦊', r:'LISICA',  s:'LI · SI · CA',   kat:'Životinje',  boja:'#F97316' },
+  // Priroda i hrana
+  { e:'🌸', r:'CVIJET',  s:'CVI · JET',      kat:'Priroda',    boja:'#EC4899' },
+  { e:'🍎', r:'JABUKA',  s:'JA · BU · KA',   kat:'Voće',       boja:'#EF4444' },
+  { e:'🍌', r:'BANANA',  s:'BA · NA · NA',   kat:'Voće',       boja:'#FBBF24' },
+  { e:'🍓', r:'JAGODA',  s:'JA · GO · DA',   kat:'Voće',       boja:'#EF4444' },
+  { e:'☀️', r:'SUNCE',   s:'SUN · CE',       kat:'Priroda',    boja:'#FBBF24' },
+  { e:'🌙', r:'MJESEC',  s:'MJE · SEC',      kat:'Priroda',    boja:'#A855F7' },
+  // Prijevoz
+  { e:'🚗', r:'AUTO',    s:'AU · TO',        kat:'Prijevoz',   boja:'#EF4444' },
+  { e:'🚢', r:'BROD',    s:'B · ROD',        kat:'Prijevoz',   boja:'#3B82F6' },
+  { e:'✈️', r:'AVION',   s:'A · VI · ON',    kat:'Prijevoz',   boja:'#06B6D4' },
+  // Obitelj i tijelo
+  { e:'👶', r:'BEBA',    s:'BE · BA',        kat:'Obitelj',    boja:'#EC4899' },
+  { e:'🏠', r:'KUĆA',    s:'KU · ĆA',       kat:'Dom',        boja:'#84CC16' },
+  { e:'⚽', r:'LOPTA',   s:'LOP · TA',       kat:'Igračke',    boja:'#10B981' },
+];
+
+let govorIdx=0; // which word we're on (0-19)
+let govorSpeaking=false;
+
+function startGovor(lvl){
+  LVL=lvl;
+  govorIdx=0;
+  govorSpeaking=false;
+  document.getElementById('govor-lvl-lbl').textContent=`${lvl}/20`;
+  document.getElementById('govor-prog-bar').style.width=((lvl-1)/20*100)+'%';
+  renderGovorWord();
+  showScreen('screen-govor');
+  // Auto-play the word after a short delay
+  setTimeout(govorListen, 600);
+}
+
+function renderGovorWord(){
+  const w=GOVOR_RIJECI[govorIdx];
+  const card=document.getElementById('govor-card');
+
+  // Animate card swap
+  card.style.opacity='0';
+  card.style.transform='scale(.95)';
+  setTimeout(()=>{
+    document.getElementById('govor-emoji').textContent=w.e;
+    document.getElementById('govor-word').textContent=w.r;
+    document.getElementById('govor-word').style.color=w.boja;
+    document.getElementById('govor-syllables').textContent=w.s;
+    document.getElementById('govor-category').textContent=w.kat;
+
+    // Card bg glow per color
+    card.style.boxShadow=`0 20px 60px rgba(0,0,0,.5), 0 0 80px ${w.boja}22`;
+    card.style.opacity='1';
+    card.style.transform='scale(1)';
+
+    // Nav state
+    document.getElementById('govor-prev').disabled=(govorIdx===0);
+    document.getElementById('govor-next').disabled=(govorIdx===GOVOR_RIJECI.length-1);
+    document.getElementById('govor-counter').textContent=`${govorIdx+1} / ${GOVOR_RIJECI.length}`;
+  },180);
+
+  card.style.transition='opacity .18s ease, transform .18s ease';
+}
+
+function govorListen(){
+  if(govorSpeaking) return;
+  const w=GOVOR_RIJECI[govorIdx];
+  govorSpeaking=true;
+
+  // Show sound wave animation on button
+  const btn=document.getElementById('govor-listen-btn');
+  const origHTML=btn.innerHTML;
+  btn.innerHTML=`<div class="govor-listen-anim">
+    <div class="govor-bar"></div><div class="govor-bar"></div>
+    <div class="govor-bar"></div><div class="govor-bar"></div>
+    <div class="govor-bar"></div>
+  </div>`;
+
+  // Animate emoji
+  const em=document.getElementById('govor-emoji');
+  em.style.animation='none';
+  em.offsetHeight; // reflow
+  em.style.animation='emojiPop .4s cubic-bezier(.34,1.56,.64,1)';
+
+  speak(w.r.toLowerCase(), ()=>{
+    govorSpeaking=false;
+    btn.innerHTML=origHTML;
+  });
+
+  // Fallback restore if TTS fails
+  setTimeout(()=>{ govorSpeaking=false; btn.innerHTML=origHTML; },3000);
+}
+
+function govorSpeak(){
+  // Microphone API — ask browser to record and give feedback
+  const w=GOVOR_RIJECI[govorIdx];
+  const btn=document.querySelectorAll('.govor-btn-speak')[0];
+
+  if(!window.SpeechRecognition && !window.webkitSpeechRecognition){
+    // No recognition API — just play the word slowly and encourage
+    btn.innerHTML=`<span class="govor-btn-icon">🌟</span>Bravo!`;
+    btn.style.background='linear-gradient(135deg,#10B981,#06B6D4)';
+    playCorrect();
+    setTimeout(()=>{
+      speak('Bravo!');
+      btn.innerHTML=`<span class="govor-btn-icon">🎤</span>Ponovi!`;
+      btn.style.background='';
+      // Auto advance after 2s
+      if(govorIdx < GOVOR_RIJECI.length-1){
+        setTimeout(()=>{ govorNav(1); setTimeout(govorListen,500); },1800);
+      } else {
+        setTimeout(govorFinish, 1800);
+      }
+    },800);
+    return;
+  }
+
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const rec=new SR();
+  rec.lang='hr-HR';
+  rec.interimResults=false;
+  rec.maxAlternatives=3;
+
+  btn.innerHTML=`<div class="govor-mic-pulse">🎤</div>`;
+
+  rec.onresult=(e)=>{
+    const said=Array.from(e.results[0]).map(r=>r.transcript.toUpperCase().trim());
+    const correct=said.some(s=>s.includes(w.r)||w.r.includes(s));
+    if(correct){
+      btn.innerHTML=`<span class="govor-btn-icon">⭐</span>Bravo!`;
+      btn.style.background='linear-gradient(135deg,#10B981,#06B6D4)';
+      playCorrect();
+      speak('Bravo!');
+    } else {
+      btn.innerHTML=`<span class="govor-btn-icon">🔄</span>Pokušaj!`;
+      btn.style.background='linear-gradient(135deg,#F97316,#FBBF24)';
+      playWrong();
+      speak(w.r.toLowerCase());
+    }
+    setTimeout(()=>{
+      btn.innerHTML=`<span class="govor-btn-icon">🎤</span>Ponovi!`;
+      btn.style.background='';
+    },2000);
+  };
+  rec.onerror=()=>{
+    btn.innerHTML=`<span class="govor-btn-icon">🎤</span>Ponovi!`;
+    btn.style.background='';
+  };
+  rec.start();
+}
+
+function govorNav(dir){
+  playClick();
+  govorIdx=Math.max(0,Math.min(GOVOR_RIJECI.length-1, govorIdx+dir));
+  renderGovorWord();
+  setTimeout(govorListen, 400);
+
+  // Mark this level word as seen — unlock next level
+  if(dir===1){
+    completed['govor'].add(LVL);
+    if(govorIdx===GOVOR_RIJECI.length-1){
+      setTimeout(govorFinish, 800);
+    }
+  }
+}
+
+function govorFinish(){
+  completed['govor'].add(LVL);
+  confetti();
+  setTimeout(playWin,200);
+  setTimeout(()=>speak('Bravo! Super si naučio!'),600);
+  setTimeout(()=>{
+    document.getElementById('res-emoji').textContent='🗣️';
+    document.getElementById('res-title').textContent='Odlično! Sve si naučio!';
+    document.getElementById('res-sub').textContent='Nastavi vježbati!';
+    document.getElementById('res-stars').innerHTML='⭐⭐⭐';
+    document.getElementById('next-lvl-btn').style.display=LVL<20?'':'none';
+    document.getElementById('result-overlay').classList.add('show');
+  },1400);
 }
 
 // BOOT
