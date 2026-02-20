@@ -765,9 +765,11 @@
         <span class="govor-btn-icon">🔊</span>
         Slušaj
       </button>
-      <button class="govor-btn govor-btn-speak" onclick="govorSpeak()">
+      <button class="govor-btn govor-btn-speak" id="govor-speak-btn"
+        onmousedown="govorBtnDown(event)" onmouseup="govorBtnUp(event)" onmouseleave="govorBtnUp(event)"
+        ontouchstart="govorBtnDown(event)" ontouchend="govorBtnUp(event)">
         <span class="govor-btn-icon">🎤</span>
-        Ponovi!
+        <span>Drži i govori</span>
       </button>
     </div>
 
@@ -2652,63 +2654,130 @@ function govorListen(){
   setTimeout(()=>{ govorSpeaking=false; btn.innerHTML=origHTML; },3000);
 }
 
-function govorSpeak(){
-  // Microphone API — ask browser to record and give feedback
-  const w=GOVOR_RIJECI[govorIdx];
-  const btn=document.querySelectorAll('.govor-btn-speak')[0];
+// ── Hold-to-record ──────────────────────────────────────────────
+// Single global SR instance — avoids permission prompt every time
+let govorRec=null, govorRecording=false;
 
-  if(!window.SpeechRecognition && !window.webkitSpeechRecognition){
-    // No recognition API — just play the word slowly and encourage
-    btn.innerHTML=`<span class="govor-btn-icon">🌟</span>Bravo!`;
-    btn.style.background='linear-gradient(135deg,#10B981,#06B6D4)';
-    playCorrect();
-    setTimeout(()=>{
-      speak('Bravo!');
-      btn.innerHTML=`<span class="govor-btn-icon">🎤</span>Ponovi!`;
-      btn.style.background='';
-      // Auto advance after 2s
-      if(govorIdx < GOVOR_RIJECI.length-1){
-        setTimeout(()=>{ govorNav(1); setTimeout(govorListen,500); },1800);
-      } else {
-        setTimeout(govorFinish, 1800);
-      }
-    },800);
-    return;
-  }
-
+function govorInitRec(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  const rec=new SR();
-  rec.lang='hr-HR';
-  rec.interimResults=false;
-  rec.maxAlternatives=3;
+  if(!SR) return false;
+  if(govorRec) return true; // already exists
 
-  btn.innerHTML=`<div class="govor-mic-pulse">🎤</div>`;
+  govorRec=new SR();
+  govorRec.lang='hr-HR';
+  govorRec.continuous=false;
+  govorRec.interimResults=false;
+  govorRec.maxAlternatives=6;
 
-  rec.onresult=(e)=>{
-    const said=Array.from(e.results[0]).map(r=>r.transcript.toUpperCase().trim());
-    const correct=said.some(s=>s.includes(w.r)||w.r.includes(s));
-    if(correct){
-      btn.innerHTML=`<span class="govor-btn-icon">⭐</span>Bravo!`;
-      btn.style.background='linear-gradient(135deg,#10B981,#06B6D4)';
-      playCorrect();
-      speak('Bravo!');
-    } else {
-      btn.innerHTML=`<span class="govor-btn-icon">🔄</span>Pokušaj!`;
-      btn.style.background='linear-gradient(135deg,#F97316,#FBBF24)';
-      playWrong();
-      speak(w.r.toLowerCase());
-    }
-    setTimeout(()=>{
-      btn.innerHTML=`<span class="govor-btn-icon">🎤</span>Ponovi!`;
-      btn.style.background='';
-    },2000);
+  govorRec.onresult=(ev)=>{
+    const said=Array.from(ev.results[0]).map(r=>r.transcript.toUpperCase().trim());
+    govorHandleResult(said);
   };
-  rec.onerror=()=>{
-    btn.innerHTML=`<span class="govor-btn-icon">🎤</span>Ponovi!`;
-    btn.style.background='';
+  govorRec.onerror=(ev)=>{
+    if(ev.error==='not-allowed') govorPermError();
+    else govorResetBtn();
   };
-  rec.start();
+  govorRec.onend=()=>{ if(govorRecording) govorResetBtn(); };
+  return true;
 }
+
+function govorBtnDown(e){
+  e.preventDefault();
+  if(govorRecording) return;
+
+  if(!govorInitRec()){ govorNoMic(); return; }
+
+  govorRecording=true;
+  const btn=document.getElementById('govor-speak-btn');
+  btn.innerHTML=`<div class="govor-mic-pulse">🎤</div><span style="font-size:.8rem;margin-top:2px;">Govori...</span>`;
+  btn.style.background='linear-gradient(135deg,#EF4444,#B91C1C)';
+  btn.style.transform='scale(.93)';
+
+  try{ govorRec.start(); }
+  catch(e){ govorResetBtn(); }
+}
+
+function govorBtnUp(e){
+  e.preventDefault();
+  if(!govorRecording) return;
+  try{ govorRec.stop(); }catch(e){}
+  govorRecording=false;
+  // If no result in 800ms → nisam čuo
+  setTimeout(()=>{
+    const btn=document.getElementById('govor-speak-btn');
+    if(btn && btn.innerHTML.includes('Govori')) govorResetBtn();
+  }, 800);
+}
+
+function govorHandleResult(said){
+  govorRecording=false;
+  const w=GOVOR_RIJECI[govorIdx];
+  const btn=document.getElementById('govor-speak-btn');
+  const target=w.r.toUpperCase().replace(/\s/g,'');
+  const correct=said.some(s=>{
+    const sc=s.replace(/\s/g,'');
+    return sc===target
+      || sc.includes(target)
+      || target.includes(sc)
+      || (sc.length>=3 && target.startsWith(sc.slice(0,3)))
+      || (target.length>=3 && sc.startsWith(target.slice(0,3)));
+  });
+
+  if(correct){
+    btn.innerHTML=`<span class="govor-btn-icon">⭐</span>Bravo!`;
+    btn.style.background='linear-gradient(135deg,#10B981,#06B6D4)';
+    btn.style.transform='';
+    playCorrect();
+    speak('Bravo!');
+    const em=document.getElementById('govor-emoji');
+    em.style.animation='none'; em.offsetHeight;
+    em.style.animation='emojiPop .5s cubic-bezier(.34,1.56,.64,1)';
+    setTimeout(()=>{
+      govorResetBtn();
+      if(govorIdx<GOVOR_RIJECI.length-1) govorNav(1);
+      else govorFinish();
+    }, 1600);
+  } else {
+    btn.innerHTML=`<span class="govor-btn-icon">🔄</span>Pokušaj opet!`;
+    btn.style.background='linear-gradient(135deg,#F97316,#FBBF24)';
+    btn.style.transform='';
+    playWrong();
+    setTimeout(()=>speak(w.r.toLowerCase()),300);
+    setTimeout(govorResetBtn, 2000);
+  }
+}
+
+function govorResetBtn(){
+  govorRecording=false;
+  // Don't destroy govorRec — keep it alive to avoid re-permission prompt
+  const btn=document.getElementById('govor-speak-btn');
+  if(!btn) return;
+  btn.innerHTML=`<span class="govor-btn-icon">🎤</span><span>Drži i govori</span>`;
+  btn.style.background='';
+  btn.style.transform='';
+}
+
+function govorNoMic(){
+  govorRecording=false;
+  // Fallback — just give bravo
+  const btn=document.getElementById('govor-speak-btn');
+  btn.innerHTML=`<span class="govor-btn-icon">⭐</span>Bravo!`;
+  btn.style.background='linear-gradient(135deg,#10B981,#06B6D4)';
+  btn.style.transform='';
+  playCorrect(); speak('Bravo!');
+  setTimeout(()=>{ govorResetBtn(); govorNav(1); }, 1500);
+}
+
+function govorPermError(){
+  govorRecording=false;
+  const btn=document.getElementById('govor-speak-btn');
+  btn.innerHTML=`<span class="govor-btn-icon">🚫</span>Dozvoli mikrofon`;
+  btn.style.background='linear-gradient(135deg,#EF4444,#991B1B)';
+  btn.style.transform='';
+  setTimeout(govorResetBtn, 2500);
+}
+
+function govorSpeak(){} // unused — kept for safety
 
 function govorNav(dir){
   playClick();
